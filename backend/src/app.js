@@ -10,7 +10,7 @@ const app = express();
 
 // Security Headers
 app.use(helmet({
-  contentSecurityPolicy: false // Allow inline scripts and PWA icons
+  contentSecurityPolicy: false // Allow inline PWA scripts and assets
 }));
 
 // CORS Policy
@@ -34,7 +34,11 @@ app.get('/health', (req, res) => {
 const rootDir = process.cwd();
 app.use(express.static(rootDir));
 
-// SPA Fallback to index.html for non-API routes
+// SPA Root and Catch-all Route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(rootDir, 'index.html'));
+});
+
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(rootDir, 'index.html'));

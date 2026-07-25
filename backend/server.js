@@ -12,7 +12,9 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('[Production UnhandledRejection]', { reason });
 });
 
-app.listen(config.port, () => {
-  logger.info(`🚀 E-comZein REST API running on port ${config.port} (${config.nodeEnv})`);
+const port = parseInt(process.env.PORT || config.port || '5000', 10);
+
+app.listen(port, '0.0.0.0', () => {
+  logger.info(`🚀 E-comZein REST API running on port ${port} (${config.nodeEnv})`);
   logger.info(`🔗 Health check endpoint: /api/v1/health`);
 });
