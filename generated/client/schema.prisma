@@ -17,16 +17,16 @@ enum Role {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  passwordHash     String   @map("password_hash")
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
   name             String
-  role             Role     @default(owner)
-  emailVerified    Boolean  @default(true) @map("email_verified")
-  hashedResetToken String?  @map("hashed_reset_token")
+  role             Role      @default(owner)
+  emailVerified    Boolean   @default(true) @map("email_verified")
+  hashedResetToken String?   @map("hashed_reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@index([email])
   @@map("users")
