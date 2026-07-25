@@ -8,14 +8,38 @@ import { globalErrorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 
-// Security Headers
+const rootDir = process.cwd();
+
+// Explicit static file routes with correct MIME types
+app.get('/styles.css', (req, res) => {
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(rootDir, 'styles.css'));
+});
+
+app.get('/app.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(rootDir, 'app.js'));
+});
+
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(rootDir, 'sw.js'));
+});
+
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(rootDir, 'manifest.json'));
+});
+
+// Security Headers (relaxed CSP for local inline styles & lucide scripts)
 app.use(helmet({
-  contentSecurityPolicy: false // Allow inline PWA scripts and assets
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: false
 }));
 
 // CORS Policy
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: '*',
   credentials: true
 }));
 
@@ -31,7 +55,6 @@ app.get('/health', (req, res) => {
 });
 
 // Serve Frontend Static Files from root directory
-const rootDir = process.cwd();
 app.use(express.static(rootDir));
 
 // SPA Root and Catch-all Route
