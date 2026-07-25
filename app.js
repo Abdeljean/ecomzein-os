@@ -597,10 +597,22 @@ function setupKeyboardShortcuts() {
 
 function updateBadgeCounts() {
   const salesBadge = document.getElementById('badge-sales-count');
-  if (salesBadge) salesBadge.textContent = state.prospects.length;
-
+  const confBadge = document.getElementById('badge-conf-count');
   const opsBadge = document.getElementById('badge-ops-count');
-  if (opsBadge) opsBadge.textContent = state.orders.filter(o => o.status.includes('Attente')).length;
+  const notifBadge = document.getElementById('notif-badge');
+
+  if (salesBadge) salesBadge.textContent = state.prospects.length;
+  if (confBadge) confBadge.textContent = state.orders.filter(o => !o.status.includes('Confirmé')).length;
+  if (opsBadge) opsBadge.textContent = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
+
+  const unreadNotifs = state.notifications.filter(n => !n.read).length;
+  if (notifBadge) {
+    if (unreadNotifs > 0) {
+      notifBadge.style.display = 'block';
+    } else {
+      notifBadge.style.display = 'none';
+    }
+  }
 }
 
 function toggleSpeedDial() {
@@ -1469,15 +1481,7 @@ function openPVModal(instId) {
   lucide.createIcons();
 }
 
-function validateInstallationAction(instId) {
-  const inst = state.installations.find(x => x.id === instId);
-  if (inst) {
-    inst.stage = 'Terminé & Validé';
-    inst.warrantyActivated = true;
-    showToast(`Installation ${instId} clôturée avec succès ! Garantie 12M activée.`, 'success');
-    renderActiveView();
-  }
-}
+
 
 /* ==========================================================================
    4. FINANCES & SAV
@@ -2593,25 +2597,7 @@ function saveNewClient(e) {
   renderActiveView();
 }
 
-function updateBadgeCounts() {
-  const salesBadge = document.getElementById('badge-sales-count');
-  const confBadge = document.getElementById('badge-conf-count');
-  const opsBadge = document.getElementById('badge-ops-count');
-  const notifBadge = document.getElementById('notif-badge');
-
-  if (salesBadge) salesBadge.textContent = state.prospects.length;
-  if (confBadge) confBadge.textContent = state.orders.filter(o => !o.status.includes('Confirmé')).length;
-  if (opsBadge) opsBadge.textContent = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
-
-  const unreadNotifs = state.notifications.filter(n => !n.read).length;
-  if (notifBadge) {
-    if (unreadNotifs > 0) {
-      notifBadge.style.display = 'block';
-    } else {
-      notifBadge.style.display = 'none';
-    }
-  }
-}
+// updateBadgeCounts defined above at line 598
 
 function playNotificationChime() {
   try {
@@ -3411,5 +3397,22 @@ function processCommissionPayout(e, salespersonId) {
     renderActiveView();
   }
 }
+
+// Auto-initialize View & Lucide Icons on Initial Page Load
+function initEcomZeinOSApp() {
+  if (typeof renderActiveView === 'function') {
+    renderActiveView();
+  }
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(initEcomZeinOSApp, 50);
+} else {
+  document.addEventListener('DOMContentLoaded', initEcomZeinOSApp);
+}
+
 
 

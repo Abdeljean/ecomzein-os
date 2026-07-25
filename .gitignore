@@ -1,0 +1,8 @@
+node_modules/*
+!node_modules/.prisma/
+!node_modules/@prisma/
+storage/uploads/*
+!storage/uploads/.gitkeep
+dist/
+*.log
+.DS_Store
