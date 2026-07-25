@@ -1,8 +1,24 @@
-node_modules/*
-!node_modules/.prisma/
-!node_modules/@prisma/
+# Node modules - Hostinger installs these via npm install
+node_modules/
+
+# Keep the pre-generated Prisma client (needed for Hostinger)
+!generated/
+!generated/**
+
+# Storage uploads (keep folder structure only)
 storage/uploads/*
 !storage/uploads/.gitkeep
+
+# Build artifacts
 dist/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment files - DO NOT commit secrets
+# .env  <-- Keep committed for Hostinger (has DB URL)
