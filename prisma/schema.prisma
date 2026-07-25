@@ -1,0 +1,211 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  owner
+  commercial
+  confirmation
+  technician
+  finance
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  name             String
+  role             Role     @default(owner)
+  emailVerified    Boolean  @default(true) @map("email_verified")
+  hashedResetToken String?  @map("hashed_reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@map("users")
+}
+
+model Prospect {
+  id          String    @id @default(cuid())
+  clinic      String
+  name        String
+  phone       String
+  city        String
+  pack        String
+  status      String    @default("À Contacter")
+  value       Decimal   @default(0.00) @db.Decimal(12, 2)
+  salesperson String    @default("Youssef El Amrani")
+  notes       String?   @db.Text
+  stepIndex   Int       @default(0) @map("step_index")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([phone])
+  @@index([status])
+  @@index([salesperson])
+  @@index([createdAt])
+  @@map("prospects")
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  establishment  String
+  contactName    String    @map("contact_name")
+  phone          String
+  email          String?
+  city           String
+  address        String?
+  packInstalled  String    @map("pack_installed")
+  totalPurchases Decimal   @default(0.00) @map("total_purchases") @db.Decimal(12, 2)
+  status         String    @default("Actif")
+  warrantyExpiry DateTime? @map("warranty_expiry")
+  notes          String?   @db.Text
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([phone])
+  @@index([status])
+  @@index([createdAt])
+  @@map("clients")
+}
+
+model Quote {
+  id        String   @id @default(cuid())
+  client    String
+  doctor    String
+  pack      String
+  totalHt   Decimal  @map("total_ht") @db.Decimal(12, 2)
+  tva       Decimal  @db.Decimal(12, 2)
+  totalTtc  Decimal  @map("total_ttc") @db.Decimal(12, 2)
+  status    String   @default("Envoyé")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("quotes")
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  client        String
+  doctor        String
+  city          String
+  packName      String    @map("pack_name")
+  totalTtc      Decimal   @map("total_ttc") @db.Decimal(12, 2)
+  status        String    @default("En Attente")
+  paymentStatus String    @default("Non Payé") @map("payment_status")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model Payment {
+  id               String   @id @default(cuid())
+  invoiceNo        String   @map("invoice_no")
+  orderId          String   @map("order_id")
+  client           String
+  amountPaid       Decimal  @map("amount_paid") @db.Decimal(12, 2)
+  balanceRemaining Decimal  @map("balance_remaining") @db.Decimal(12, 2)
+  status           String   @default("En Retard")
+  isOverdue        Boolean  @default(false) @map("is_overdue")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([isOverdue])
+  @@map("payments")
+}
+
+model Installation {
+  id                String   @id @default(cuid())
+  client            String
+  doctor            String
+  city              String
+  address           String?
+  pack              String
+  technician        String   @default("Mehdi Tazi")
+  stage             String   @default("Planifié")
+  warrantyActivated Boolean  @default(false) @map("warranty_activated")
+  progress          Int      @default(0)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([stage])
+  @@index([technician])
+  @@map("installations")
+}
+
+model Warranty {
+  id            String   @id @default(cuid())
+  client        String
+  packInstalled String   @map("pack_installed")
+  startDate     DateTime @default(now()) @map("start_date")
+  expiryDate    DateTime @map("expiry_date")
+  status        String   @default("Actif (12M)")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([expiryDate])
+  @@map("warranties")
+}
+
+model Commission {
+  id              String   @id @default(cuid())
+  salespersonName String   @map("salesperson_name")
+  client          String
+  pack            String
+  amountHt        Decimal  @map("amount_ht") @db.Decimal(12, 2)
+  rate            String   @default("5%")
+  commissionVal   Decimal  @map("commission_val") @db.Decimal(12, 2)
+  status          String   @default("En Attente Payout")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([salespersonName])
+  @@index([status])
+  @@map("commissions")
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  roleTarget String   @map("role_target")
+  message    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([roleTarget])
+  @@map("notifications")
+}
+
+// Strictly Append-Only Audit Log
+model AuditLog {
+  id        String   @id @default(cuid())
+  userName  String   @map("user_name")
+  userRole  String   @map("user_role")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  oldValue  String?  @map("old_value")
+  newValue  String?  @map("new_value")
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}
