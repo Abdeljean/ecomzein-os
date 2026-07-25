@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Ecom Zein - Système d'Exploitation Commercial & Opérationnel Épuré.">
+  <title>Ecom Zein</title>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  <meta name="apple-mobile-web-app-title" content="Ecom Zein">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- Sidebar Épurée (Zen Mode) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand-logo" data-view="dashboard">
+          <div class="brand-icon">EZ</div>
+          <span>Ecom Zein</span>
+        </a>
+        <button class="pin-sidebar-btn" id="pin-sidebar-btn" onclick="togglePinSidebar(event)" title="Fixer / Auto-fermer le menu">
+          <i data-lucide="chevron-left"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-menu" id="sidebar-menu">
+        <div class="nav-section-title">WORKSPACE MÉTIER</div>
+        
+        <a href="#" class="nav-item active" data-view="dashboard" data-roles="owner,commercial,confirmation,technician,finance">
+          <span class="icon"><i data-lucide="check-square"></i></span>
+          <span>Today's Work</span>
+        </a>
+
+        <a href="#" class="nav-item" data-view="sales" data-roles="owner,commercial,confirmation">
+          <span class="icon"><i data-lucide="trending-up"></i></span>
+          <span>Ventes</span>
+          <span class="badge-count" id="badge-sales-count">5</span>
+        </a>
+
+        <a href="#" class="nav-item" data-view="packs" data-roles="owner,commercial">
+          <span class="icon"><i data-lucide="package"></i></span>
+          <span>Packs & Supp</span>
+        </a>
+
+        <a href="#" class="nav-item" data-view="clients" data-roles="owner,commercial,confirmation">
+          <span class="icon"><i data-lucide="users"></i></span>
+          <span>Clients</span>
+        </a>
+
+        <a href="#" class="nav-item" data-view="finance" data-roles="owner,finance">
+          <span class="icon"><i data-lucide="dollar-sign"></i></span>
+          <span>Finances & Recouvrement</span>
+        </a>
+
+        <a href="#" class="nav-item" data-view="operations" data-roles="owner,technician">
+          <span class="icon"><i data-lucide="truck"></i></span>
+          <span>Installations</span>
+          <span class="badge-count" style="background:#F59E0B; color:white;" id="badge-ops-count">2</span>
+        </a>
+
+        <div class="nav-section-title" style="margin-top:0.75rem;">CONFIGURATION</div>
+
+        <a href="#" class="nav-item" data-view="administration" data-roles="owner">
+          <span class="icon"><i data-lucide="settings"></i></span>
+          <span>Paramètres</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Role Switcher -->
+        <div class="role-switcher" style="padding:0.5rem 1rem; margin-bottom:0.25rem;">
+          <select id="role-selector" onchange="switchUserRole(this.value)" style="width:100%; padding:0.4rem 0.6rem; border:1px solid #E2E8F0; border-radius:8px; font-size:0.72rem; font-weight:700; color:#64748B; background:white; cursor:pointer;">
+            <option value="owner" selected>👑 Owner (Accès Total)</option>
+            <option value="commercial">📊 Commercial</option>
+            <option value="confirmation">✅ Agent Confirmation</option>
+            <option value="technician">🔧 Technicien Terrain</option>
+            <option value="finance">💰 Comptable</option>
+          </select>
+        </div>
+        <div class="user-pill">
+          <div class="avatar">YE</div>
+          <div class="user-info">
+            <div class="user-name">Youssef El Amrani</div>
+            <div class="user-role" id="user-role-label">Chef des Ventes</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      
+      <!-- Topbar Épurée -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="toggle-sidebar-btn" title="Menu">
+            <i data-lucide="menu"></i>
+          </button>
+
+          <div class="global-search-trigger" onclick="openGlobalSearch()">
+            <i data-lucide="search" style="width:16px;"></i>
+            <span>Rechercher un client, devis, commande...</span>
+            <kbd class="search-shortcut">Ctrl K</kbd>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="icon-btn" id="notification-btn" onclick="openNotificationsModal()" title="Notifications & Automatisations" style="position:relative; width:38px; height:38px; border-radius:50%; border:1px solid #CBD5E1; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i data-lucide="bell" style="width:18px; color:#334155;"></i>
+            <span class="notification-dot" style="position:absolute; top:6px; right:6px; width:8px; height:8px; background:#EF4444; border-radius:50%; border:2px solid white;"></span>
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openNewProspectModal();">
+            <i data-lucide="plus"></i>
+            <span>Nouveau Prospect</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main View -->
+      <main class="content-area" id="view-container">
+        <!-- Views rendered by app.js -->
+      </main>
+
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-bottom-nav">
+      <a href="#" class="mobile-nav-item active" data-view="dashboard">
+        <i data-lucide="check-square"></i>
+        <span>Today</span>
+      </a>
+      <a href="#" class="mobile-nav-item" data-view="sales">
+        <i data-lucide="trending-up"></i>
+        <span>Ventes</span>
+      </a>
+      <a href="#" class="mobile-nav-item" data-view="clients">
+        <i data-lucide="users"></i>
+        <span>Clients</span>
+      </a>
+      <a href="#" class="mobile-nav-item" data-view="finance">
+        <i data-lucide="dollar-sign"></i>
+        <span>Finances</span>
+      </a>
+      <a href="#" class="mobile-nav-item" data-view="operations">
+        <i data-lucide="truck"></i>
+        <span>Installations</span>
+      </a>
+    </nav>
+
+    <!-- Speed Dial FAB Actions (Mobile) -->
+    <div class="fab-speed-dial" id="fab-speed-dial">
+      <div class="fab-menu-options">
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); openNewProspectModal();"><i data-lucide="user-plus"></i> Nouveau Prospect</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Formulaire Devis ouvert', 'info');"><i data-lucide="file-text"></i> Nouveau Devis</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Formulaire Commande ouvert', 'info');"><i data-lucide="package-plus"></i> Nouvelle Commande</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Rappel programmé !', 'success');"><i data-lucide="alarm-clock"></i> Rappel</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Tâche ajoutée !', 'success');"><i data-lucide="check-square"></i> Nouvelle Tâche</button>
+      </div>
+      <button class="mobile-fab" onclick="toggleSpeedDial()"><i data-lucide="plus"></i></button>
+    </div>
+
+    <!-- Slide-over Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="drawer"></div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal-container" id="modal"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
