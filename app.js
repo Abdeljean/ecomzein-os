@@ -3781,6 +3781,8 @@ function sendPasswordResetEmail(email) {
    RÉPERTOIRE & FICHIER CLIENTS (CLIENTS DIRECTORY)
    ========================================================================== */
 function renderClientsView() {
+  const isSuperAdmin = state.userRole === 'owner' || state.currentUser?.role === 'owner';
+
   return `
     <div class="page-header">
       <div>
@@ -3827,7 +3829,13 @@ function renderClientsView() {
               <td style="font-size:0.82rem; font-weight:600;">${c.packInstalled}</td>
               <td><span class="badge ${c.status === 'Client VIP' ? 'badge-purple' : c.status === 'Sous Garantie' ? 'badge-green' : 'badge-blue'}">${c.status}</span></td>
               <td style="text-align:right;">
-                <button class="btn btn-secondary btn-sm" onclick="openClientDetailsModal('${c.id}')"><i data-lucide="file-text"></i> Fiche Client</button>
+                <div style="display:inline-flex; gap:0.3rem; align-items:center;">
+                  <button class="btn btn-secondary btn-sm" onclick="openClientDetailsModal('${c.id}')" title="Voir Fiche Client"><i data-lucide="file-text"></i> Fiche</button>
+                  ${isSuperAdmin ? `
+                    <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" title="Modifier le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="edit"></i> Modifier</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')" title="Supprimer le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="trash-2"></i></button>
+                  ` : ''}
+                </div>
               </td>
             </tr>
           `).join('')}
@@ -4100,6 +4108,10 @@ function openClientDetailsModal(clientId) {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
+      ${(state.userRole === 'owner' || state.currentUser?.role === 'owner') ? `
+        <button class="btn btn-secondary" onclick="closeModal(); openEditClientModal('${c.id}');"><i data-lucide="edit"></i> Modifier Client</button>
+        <button class="btn btn-danger" onclick="deleteClient('${c.id}');"><i data-lucide="trash-2"></i> Supprimer Client</button>
+      ` : ''}
       <button class="btn btn-success" onclick="triggerWhatsApp('${c.phone}')"><i data-lucide="message-square"></i> Contacter par WhatsApp</button>
     </div>
   `;
@@ -4739,6 +4751,115 @@ window.resetCompanyLogo = function() {
   }
   showToast('Logo réinitialisé au logo E-comZein par défaut', 'info');
   renderActiveView();
+};
+
+// ─── SUPER ADMIN EDIT & DELETE HANDLERS FOR CLIENTS ──────────────────────────────────
+window.openEditClientModal = function(clientId) {
+  const c = state.clients.find(x => x.id === clientId);
+  if (!c) return;
+
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="edit"></i> Modifier la Fiche Client (${c.id})</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveEditClient(event, '${c.id}')">
+      <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom de l'Établissement / Clinique *</label>
+          <input type="text" id="ecl-est" class="form-input" value="${c.establishment}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Contact Médecin / Responsable *</label>
+          <input type="text" id="ecl-contact" class="form-input" value="${c.contactName}" required>
+        </div>
+        <div>
+          <label style="font-size:0.75rem; font-weight:600; margin-bottom:0.2rem; display:block;">Statut Client *</label>
+          <select id="ecl-status" class="form-input" required style="font-size:0.85rem;">
+            <option value="Client Actif" ${c.status === 'Client Actif' ? 'selected' : ''}>Client Actif</option>
+            <option value="Sous Garantie" ${c.status === 'Sous Garantie' ? 'selected' : ''}>Sous Garantie</option>
+            <option value="Client VIP" ${c.status === 'Client VIP' ? 'selected' : ''}>Client VIP</option>
+            <option value="Inactif" ${c.status === 'Inactif' ? 'selected' : ''}>Inactif</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Téléphone *</label>
+          <input type="text" id="ecl-phone" class="form-input" value="${c.phone}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Email Officiel *</label>
+          <input type="email" id="ecl-email" class="form-input" value="${c.email}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Ville *</label>
+          <input type="text" id="ecl-city" class="form-input" value="${c.city}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Pack Installé</label>
+          <input type="text" id="ecl-pack" class="form-input" value="${c.packInstalled}">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Adresse Complète Siège</label>
+          <input type="text" id="ecl-addr" class="form-input" value="${c.address}" required>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Lien Google Maps GPS</label>
+          <input type="url" id="ecl-maps" class="form-input" value="${c.mapsUrl}">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Notes & Remarques</label>
+          <textarea id="ecl-notes" class="form-input" rows="2">${c.notes || ''}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Enregistrer les Modifications</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.saveEditClient = function(e, clientId) {
+  e.preventDefault();
+  const c = state.clients.find(x => x.id === clientId);
+  if (!c) return;
+
+  c.establishment = document.getElementById('ecl-est').value;
+  c.contactName = document.getElementById('ecl-contact').value;
+  c.status = document.getElementById('ecl-status').value;
+  c.phone = document.getElementById('ecl-phone').value;
+  c.email = document.getElementById('ecl-email').value;
+  c.city = document.getElementById('ecl-city').value;
+  c.packInstalled = document.getElementById('ecl-pack').value;
+  c.address = document.getElementById('ecl-addr').value;
+  c.mapsUrl = document.getElementById('ecl-maps').value || `https://maps.google.com/?q=${encodeURIComponent(c.address)}`;
+  c.notes = document.getElementById('ecl-notes').value;
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Client "${c.establishment}" mis à jour avec succès !`, 'success');
+  renderActiveView();
+};
+
+window.deleteClient = function(clientId) {
+  const idx = state.clients.findIndex(x => x.id === clientId);
+  if (idx === -1) return;
+  const estName = state.clients[idx].establishment;
+
+  if (confirm(`👑 Accès Super Admin: Êtes-vous sûr de vouloir supprimer définitivement le Client "${estName}" du répertoire ?`)) {
+    state.clients.splice(idx, 1);
+    closeModal();
+    saveStateToLocalStorage();
+    showToast(`Client "${estName}" supprimé du répertoire.`, 'danger');
+    renderActiveView();
+  }
 };
 
 // initApp() at line 426 is the single entry point — no duplicate needed
