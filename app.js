@@ -280,10 +280,50 @@ const state = {
 
   // Utilisateurs & Rôles
   teamMembers: [
-    { id: 'USR-101', name: 'Youssef El Amrani', role: 'Chef des Ventes', email: 'youssef@ecomzein.ma', status: 'Actif', lastAccess: 'Aujourd\'hui' },
-    { id: 'USR-102', name: 'Sara Loudiyi', role: 'Commerciale Senior', email: 'sara@ecomzein.ma', status: 'Actif', lastAccess: 'Hier' },
-    { id: 'USR-103', name: 'Amine Kabbaj', role: 'Responsable Confirmation', email: 'amine@ecomzein.ma', status: 'Actif', lastAccess: 'Aujourd\'hui' },
-    { id: 'USR-104', name: 'Mehdi Tazi', role: 'Chef Technicien Terrain', email: 'mehdi@ecomzein.ma', status: 'Actif', lastAccess: 'Aujourd\'hui' }
+    { 
+      id: 'USR-101', 
+      name: 'Youssef El Amrani', 
+      roleKey: 'owner',
+      role: '👑 Owner / Direction', 
+      email: 'youssef@ecomzein.ma', 
+      status: 'Actif', 
+      isLocked: false, 
+      lastAccess: 'Aujourd\'hui',
+      permissions: { viewProspects: true, editPrices: true, validateDeposits: true, techPv: true, adminLogs: true, viewRevenue: true }
+    },
+    { 
+      id: 'USR-102', 
+      name: 'Sara Loudiyi', 
+      roleKey: 'commercial',
+      role: '📊 Commerciale Senior', 
+      email: 'sara@ecomzein.ma', 
+      status: 'Actif', 
+      isLocked: false, 
+      lastAccess: 'Hier',
+      permissions: { viewProspects: true, editPrices: false, validateDeposits: false, techPv: false, adminLogs: false, viewRevenue: false }
+    },
+    { 
+      id: 'USR-103', 
+      name: 'Amine Kabbaj', 
+      roleKey: 'confirmation',
+      role: '✅ Agent Confirmation', 
+      email: 'amine@ecomzein.ma', 
+      status: 'Actif', 
+      isLocked: false, 
+      lastAccess: 'Aujourd\'hui',
+      permissions: { viewProspects: true, editPrices: false, validateDeposits: true, techPv: false, adminLogs: false, viewRevenue: false }
+    },
+    { 
+      id: 'USR-104', 
+      name: 'Mehdi Tazi', 
+      roleKey: 'technician',
+      role: '🔧 Chef Technicien Terrain', 
+      email: 'mehdi@ecomzein.ma', 
+      status: 'Actif', 
+      isLocked: false, 
+      lastAccess: 'Aujourd\'hui',
+      permissions: { viewProspects: false, editPrices: false, validateDeposits: false, techPv: true, adminLogs: false, viewRevenue: false }
+    }
   ],
 
   // Suivi des Commercials & Commissions
@@ -325,7 +365,8 @@ function saveStateToLocalStorage() {
       notifications: state.notifications,
       auditLogs: state.auditLogs,
       packs: state.packs,
-      supplements: state.supplements
+      supplements: state.supplements,
+      teamMembers: state.teamMembers
     };
     localStorage.setItem('nobti_crm_state_v2', JSON.stringify(dataToSave));
   } catch (e) {
@@ -350,6 +391,7 @@ function loadStateFromLocalStorage() {
       if (parsed.auditLogs && Array.isArray(parsed.auditLogs)) state.auditLogs = parsed.auditLogs;
       if (parsed.packs && Array.isArray(parsed.packs)) state.packs = parsed.packs;
       if (parsed.supplements && Array.isArray(parsed.supplements)) state.supplements = parsed.supplements;
+      if (parsed.teamMembers && Array.isArray(parsed.teamMembers)) state.teamMembers = parsed.teamMembers;
     } else {
       saveStateToLocalStorage();
     }
@@ -1651,29 +1693,63 @@ function renderAdministrationView() {
     </div>
 
     ${state.adminSubTab === 'users' ? `
+      <!-- User Management Header Bar -->
+      <div style="background:white; border:1px solid #E2E8F0; border-radius:12px; padding:1.1rem 1.25rem; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div>
+          <div style="font-size:0.78rem; font-weight:700; color:#2563EB; text-transform:uppercase; letter-spacing:0.03em;">GESTION DES ACCÈS & ÉQUIPE</div>
+          <h2 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-top:0.1rem;">Comptes Utilisateurs & Permissions Granulaires</h2>
+          <div style="font-size:0.78rem; color:#64748B; margin-top:0.25rem;">
+            Total: <strong>${state.teamMembers.length}</strong> • Actifs: <strong style="color:#16A34A;">${state.teamMembers.filter(u => u.status === 'Actif').length}</strong> • En Attente: <strong style="color:#F59E0B;">${state.teamMembers.filter(u => u.status === 'En Attente' || u.status === 'En Attente Invitation').length}</strong>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="openInviteUserModal();" style="padding:0.65rem 1.15rem; font-weight:700; border-radius:10px;">
+          <i data-lucide="user-plus"></i>
+          <span>+ Inviter un Membre d'Équipe</span>
+        </button>
+      </div>
+
+      <!-- Users Table -->
       <div class="table-container">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Nom Utilisateur</th>
+              <th>Utilisateur</th>
               <th>Email</th>
-              <th>Rôle Assigné</th>
+              <th>Rôle Métier</th>
               <th>Statut Compte</th>
-              <th style="text-align:right;">Actions</th>
+              <th>Dernier Accès</th>
+              <th style="text-align:right;">Actions & Configuration</th>
             </tr>
           </thead>
           <tbody>
-            ${state.teamMembers.map(u => `
-              <tr>
-                <td style="font-weight:700;">${u.name}</td>
-                <td style="color:#64748B;">${u.email}</td>
-                <td><span class="badge badge-action-blue">${u.role}</span></td>
-                <td><span class="badge badge-success-green">${u.status}</span></td>
-                <td style="text-align:right;">
-                  <button class="btn btn-secondary btn-sm" onclick="showToast('Compte configuré', 'info')">Gérer Accès</button>
-                </td>
-              </tr>
-            `).join('')}
+            ${state.teamMembers.map(u => {
+              const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+              const statusBadge = u.isLocked ? 'badge-amber' : u.status === 'Actif' ? 'badge-success-green' : 'badge-waiting-amber';
+              const statusLabel = u.isLocked ? '🔒 Verrouillé' : u.status || 'Actif';
+              
+              return `
+                <tr>
+                  <td style="font-weight:700;">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                      <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #2563EB, #7C3AED); color:white; font-size:0.78rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${initials}</div>
+                      <div>
+                        <div style="color:#1F2937; font-size:0.88rem;">${u.name}</div>
+                        <div style="font-size:0.72rem; color:#94A3B8;">ID: ${u.id}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="color:#475569; font-weight:500;">${u.email}</td>
+                  <td><span class="badge badge-action-blue">${u.role || 'Utilisateur'}</span></td>
+                  <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+                  <td style="font-size:0.78rem; color:#64748B;">${u.lastAccess || 'Récemment'}</td>
+                  <td style="text-align:right;">
+                    <button class="btn btn-secondary btn-sm" onclick="openUserAccessModal('${u.id}')" style="font-size:0.78rem; padding:0.4rem 0.8rem; font-weight:700;">
+                      <i data-lucide="shield-check" style="width:14px;"></i> Gérer Accès & Permissions
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       </div>
@@ -2566,6 +2642,295 @@ function openNewClientModal() {
   overlay.classList.add('active');
   document.body.classList.add('modal-open');
   safeCreateIcons();
+}
+
+/* ==========================================================================
+   GESTION DES UTILISATEURS & PERMISSIONS GRANULAIRES (USER ACCESS ENGINE)
+   ========================================================================== */
+
+// 1. Modal Inviter un Membre d'Équipe
+function openInviteUserModal() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="user-plus"></i> Inviter un Nouveau Membre d'Équipe</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="sendUserInvitation(event)">
+      <div class="modal-body" style="padding:1.25rem; display:flex; flex-direction:column; gap:0.85rem;">
+        
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; color:#334155; margin-bottom:0.25rem; display:block;">Nom & Prénom *</label>
+          <input type="text" id="inv-name" class="form-input" placeholder="ex: Karim Benjelloun" required style="width:100%;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; color:#334155; margin-bottom:0.25rem; display:block;">Adresse Email Professionnelle *</label>
+          <input type="email" id="inv-email" class="form-input" placeholder="karim@ecomzein.ma" required style="width:100%;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; color:#334155; margin-bottom:0.25rem; display:block;">Rôle Principal Assigné *</label>
+          <select id="inv-role" class="form-input" style="width:100%; font-weight:600;">
+            <option value="commercial" selected>📊 Commercial Senior</option>
+            <option value="confirmation">✅ Agent Confirmation</option>
+            <option value="technician">🔧 Technicien Terrain</option>
+            <option value="finance">💰 Responsable Finance & Comptabilité</option>
+            <option value="owner">👑 Owner / Direction (Accès Total)</option>
+          </select>
+        </div>
+
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:0.9rem;">
+          <div style="font-size:0.8rem; font-weight:800; color:#1F2937; margin-bottom:0.5rem;">🔒 PERMISSIONS GRANULAIRES SUR-MESURE</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.55rem; font-size:0.8rem;">
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-prospects" checked> 👁️ Pipeline & Prospects</label>
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-prices"> ✏️ Modifier Prix & Remises</label>
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-deposits"> 💰 Valider Acomptes 50%</label>
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-pv"> 🔧 Clôturer PVs & Garantie</label>
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-revenue"> 📈 Voir Chiffre d'Affaires</label>
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer;"><input type="checkbox" id="perm-admin"> 🛡️ Accès Logs & Administration</label>
+          </div>
+        </div>
+
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.75rem; font-size:0.78rem; color:#1E40AF;">
+          ℹ️ Un lien sécurisé d'activation sera généré automatiquement. L'utilisateur pourra créer son propre mot de passe à la première connexion.
+        </div>
+
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">✉️ Générer & Envoyer l'Invitation</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+}
+
+// 2. Traitement d'envoi d'invitation
+function sendUserInvitation(e) {
+  e.preventDefault();
+  const name = document.getElementById('inv-name').value;
+  const email = document.getElementById('inv-email').value;
+  const roleKey = document.getElementById('inv-role').value;
+
+  const roleLabels = {
+    owner: '👑 Owner / Direction',
+    commercial: '📊 Commercial Senior',
+    confirmation: '✅ Agent Confirmation',
+    technician: '🔧 Chef Technicien Terrain',
+    finance: '💰 Responsable Finance'
+  };
+
+  const inviteToken = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+  const newUserId = `USR-${100 + state.teamMembers.length + 1}`;
+
+  const newUser = {
+    id: newUserId,
+    name,
+    email,
+    roleKey,
+    role: roleLabels[roleKey] || roleKey,
+    status: 'En Attente Invitation',
+    isLocked: false,
+    lastAccess: 'Jamais',
+    inviteToken,
+    permissions: {
+      viewProspects: document.getElementById('perm-prospects').checked,
+      editPrices: document.getElementById('perm-prices').checked,
+      validateDeposits: document.getElementById('perm-deposits').checked,
+      techPv: document.getElementById('perm-pv').checked,
+      viewRevenue: document.getElementById('perm-revenue').checked,
+      adminLogs: document.getElementById('perm-admin').checked
+    }
+  };
+
+  state.teamMembers.unshift(newUser);
+  saveStateToLocalStorage();
+
+  // Show Success Link Modal
+  const inviteLink = `${window.location.origin}/?invite=${inviteToken}`;
+  
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem; color:#16A34A;"><i data-lucide="check-circle"></i> Invitation Générée avec Succès !</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem; display:flex; flex-direction:column; gap:1rem;">
+      <div style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:10px; padding:1rem; text-align:center;">
+        <div style="font-size:0.8rem; font-weight:700; color:#166534;">MEMBRE AJOUTÉ À L'ÉQUIPE</div>
+        <div style="font-size:1.1rem; font-weight:800; color:#1F2937; margin-top:0.25rem;">${name}</div>
+        <div style="font-size:0.82rem; color:#475569;">${email} • ${newUser.role}</div>
+      </div>
+
+      <div>
+        <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.3rem; display:block;">🔗 LIEN D'INVITATION DIRECT (Pour WhatsApp / Email) :</label>
+        <div style="display:flex; gap:0.5rem;">
+          <input type="text" id="invite-link-input" class="form-input" value="${inviteLink}" readonly style="font-family:monospace; font-size:0.8rem; background:#F8FAFC; width:100%;">
+          <button class="btn btn-primary btn-sm" onclick="copyInviteLink('${inviteLink}')" style="white-space:nowrap; padding:0.5rem 0.85rem;">
+            📋 Copier le Link
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+      <button class="btn btn-secondary" onclick="closeModal(); renderActiveView();">Fermer</button>
+    </div>
+  `;
+  safeCreateIcons();
+}
+
+function copyInviteLink(link) {
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('📋 Lien d\'invitation copié dans le presse-papier !', 'success');
+  }).catch(() => {
+    const input = document.getElementById('invite-link-input');
+    if (input) {
+      input.select();
+      document.execCommand('copy');
+      showToast('📋 Lien d\'invitation copié !', 'success');
+    }
+  });
+}
+
+// 3. Modal Configuration Granulaire & Gérer Accès d'un Utilisateur
+function openUserAccessModal(userId) {
+  const u = state.teamMembers.find(x => x.id === userId);
+  if (!u) return;
+
+  if (!u.permissions) {
+    u.permissions = { viewProspects: true, editPrices: false, validateDeposits: false, techPv: false, adminLogs: false, viewRevenue: false };
+  }
+
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="shield-check"></i> Configuration Accès & Permissions — ${u.name}</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveUserAccessPermissions(event, '${u.id}')">
+      <div class="modal-body" style="padding:1.25rem; display:flex; flex-direction:column; gap:1rem;">
+        
+        <!-- User Info Header Card -->
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:0.9rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <div>
+            <strong style="font-size:1rem; color:#1F2937;">${u.name}</strong>
+            <div style="font-size:0.8rem; color:#64748B;">${u.email} • ID: ${u.id}</div>
+          </div>
+          <span class="badge ${u.isLocked ? 'badge-amber' : 'badge-success-green'}">${u.isLocked ? '🔒 Compte Verrouillé' : u.status || 'Actif'}</span>
+        </div>
+
+        <!-- Role Select -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Rôle Métier Assigné</label>
+          <select id="edit-user-role" class="form-input" style="width:100%; font-weight:600;">
+            <option value="owner" ${u.roleKey === 'owner' ? 'selected' : ''}>👑 Owner / Direction (Accès Total)</option>
+            <option value="commercial" ${u.roleKey === 'commercial' ? 'selected' : ''}>📊 Commercial Senior</option>
+            <option value="confirmation" ${u.roleKey === 'confirmation' ? 'selected' : ''}>✅ Agent Confirmation</option>
+            <option value="technician" ${u.roleKey === 'technician' ? 'selected' : ''}>🔧 Chef Technicien Terrain</option>
+            <option value="finance" ${u.roleKey === 'finance' ? 'selected' : ''}>💰 Responsable Finance</option>
+          </select>
+        </div>
+
+        <!-- Granular Permissions Checks -->
+        <div style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:10px; padding:1rem;">
+          <div style="font-size:0.82rem; font-weight:800; color:#1F2937; margin-bottom:0.6rem;">🔒 MATRICE DES PERMISSIONS PERSONNALISÉES</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; font-size:0.82rem;">
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-prospects" ${u.permissions.viewProspects ? 'checked' : ''}> 👁️ Accès Pipeline & Prospects
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-prices" ${u.permissions.editPrices ? 'checked' : ''}> ✏️ Modification Prix & Devis
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-deposits" ${u.permissions.validateDeposits ? 'checked' : ''}> 💰 Validation Acomptes 50%
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-pv" ${u.permissions.techPv ? 'checked' : ''}> 🔧 Formulaire PV & Garantie
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-revenue" ${u.permissions.viewRevenue ? 'checked' : ''}> 📈 Vision Chiffre d'Affaires
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="mperm-admin" ${u.permissions.adminLogs ? 'checked' : ''}> 🛡️ Accès Logs & Config Admin
+            </label>
+          </div>
+        </div>
+
+        <!-- Quick Actions Row -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-top:1px dashed #CBD5E1; padding-top:0.85rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="toggleLockUserAccount('${u.id}')" style="font-size:0.78rem;">
+            ${u.isLocked ? '🔓 Déverrouiller le Compte' : '🔒 Verrouiller le Compte'}
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm" onclick="sendPasswordResetEmail('${u.email}')" style="font-size:0.78rem;">
+            🔑 Envoyé Lien Réinitialisation
+          </button>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Enregistrer les Modifications</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+}
+
+// 4. Sauvegarder les permissions d'un utilisateur
+function saveUserAccessPermissions(e, userId) {
+  e.preventDefault();
+  const u = state.teamMembers.find(x => x.id === userId);
+  if (!u) return;
+
+  const roleKey = document.getElementById('edit-user-role').value;
+  const roleLabels = {
+    owner: '👑 Owner / Direction',
+    commercial: '📊 Commercial Senior',
+    confirmation: '✅ Agent Confirmation',
+    technician: '🔧 Chef Technicien Terrain',
+    finance: '💰 Responsable Finance'
+  };
+
+  u.roleKey = roleKey;
+  u.role = roleLabels[roleKey] || roleKey;
+  u.permissions = {
+    viewProspects: document.getElementById('mperm-prospects').checked,
+    editPrices: document.getElementById('mperm-prices').checked,
+    validateDeposits: document.getElementById('mperm-deposits').checked,
+    techPv: document.getElementById('mperm-pv').checked,
+    viewRevenue: document.getElementById('mperm-revenue').checked,
+    adminLogs: document.getElementById('mperm-admin').checked
+  };
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Permissions de ${u.name} mises à jour avec succès !`, 'success');
+  renderActiveView();
+}
+
+// 5. Verrouiller / Déverrouiller le compte
+function toggleLockUserAccount(userId) {
+  const u = state.teamMembers.find(x => x.id === userId);
+  if (!u) return;
+  u.isLocked = !u.isLocked;
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Compte ${u.name} ${u.isLocked ? 'verrouillé 🔒' : 'déverrouillé 🔓'} !`, u.isLocked ? 'warning' : 'success');
+  renderActiveView();
+}
+
+// 6. Envoyer le lien de réinitialisation de mot de passe
+function sendPasswordResetEmail(email) {
+  showToast(`🔑 Lien de réinitialisation de mot de passe envoyé à ${email} !`, 'success');
 }
 
 /* ==========================================================================
