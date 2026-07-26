@@ -2124,15 +2124,34 @@ function triggerWhatsApp(phone) {
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
+
+  // Keep max 1 single toast active at any time to avoid stacking clutter
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  toast.style.transition = 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+  toast.style.cursor = 'pointer';
+  toast.onclick = () => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(8px) scale(0.95)';
+    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 200);
+  };
+  
   toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'info'}"></i> <span>${message}</span>`;
   container.appendChild(toast);
-  lucide.createIcons();
+  safeCreateIcons();
+
+  // Fast auto-remove in 2.2 seconds
   setTimeout(() => {
     toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
+    toast.style.transform = 'translateY(8px) scale(0.95)';
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 250);
+  }, 2200);
 }
 
 /* ==========================================================================
