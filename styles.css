@@ -141,7 +141,9 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar.collapsed .nav-section-title,
 .sidebar.collapsed .nav-item span:not(.icon),
 .sidebar.collapsed .badge-count,
-.sidebar.collapsed .user-info {
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .role-switcher,
+.sidebar.collapsed .user-pill button {
   display: none !important;
 }
 
