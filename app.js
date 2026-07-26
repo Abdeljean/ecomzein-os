@@ -193,7 +193,20 @@ const state = {
   pwaInstallPrompt: null,
   auditLogs: [],
   packs: [],
-  supplements: [],
+  companyInfo: JSON.parse(localStorage.getItem('nobti_company_info') || 'null') || {
+    monogram: 'EZ',
+    name: 'Ecom Zein OS',
+    legalName: 'Ecom Zein Maroc S.A.R.L',
+    tagline: 'Systèmes de Gestion de Files d\'Attente & Displays Médicaux',
+    address: 'Siège Social: Bd Zerktouni, Casablanca',
+    ice: '003184920000084',
+    rc: '549201',
+    if: '4920194',
+    patente: '394029',
+    phone: '+212 522-984000',
+    email: 'contact@tassnimproduct.shop',
+    rib: '011 780 0000123456789012 45 (Attijariwafa Bank)'
+  },
 
   // Prospects Ventes
   prospects: [
@@ -353,11 +366,13 @@ function saveStateToLocalStorage() {
       commissionDeals: state.commissionDeals,
       notifications: state.notifications,
       auditLogs: state.auditLogs,
+      companyInfo: state.companyInfo,
       packs: state.packs,
       supplements: state.supplements,
       teamMembers: state.teamMembers
     };
     localStorage.setItem('nobti_crm_state_v2', JSON.stringify(dataToSave));
+    localStorage.setItem('nobti_company_info', JSON.stringify(state.companyInfo));
   } catch (e) {
     console.warn('Error saving state to localStorage', e);
   }
@@ -1692,6 +1707,7 @@ function renderAdministrationView() {
         <p class="page-subtitle">Gestion des rôles RBAC, traçabilité des logs d'audit et utilisateurs.</p>
       </div>
       <div style="display:flex; gap:0.4rem; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <button class="btn ${state.adminSubTab === 'company' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='company'; renderActiveView();">🏢 Coordonnées Société & Devis</button>
         <button class="btn ${state.adminSubTab === 'users' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='users'; renderActiveView();">Comptes Utilisateurs</button>
         <button class="btn ${state.adminSubTab === 'rbac' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='rbac'; renderActiveView();">Matrice RBAC</button>
         <button class="btn ${state.adminSubTab === 'audit' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='audit'; renderActiveView();">Logs d'Audit (${state.auditLogs.length})</button>
@@ -1699,7 +1715,118 @@ function renderAdministrationView() {
       </div>
     </div>
 
-    ${state.adminSubTab === 'users' ? `
+    ${state.adminSubTab === 'company' ? `
+      <!-- Configuration Société, Logo & Entête Devis -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
+        
+        <!-- Form Block -->
+        <form onsubmit="saveCompanyInfo(event)" style="background:white; border:1px solid #E2E8F0; border-radius:12px; padding:1.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid #F1F5F9; padding-bottom:0.75rem;">
+            <div>
+              <div style="font-size:0.75rem; font-weight:800; color:#2563EB; text-transform:uppercase; letter-spacing:0.04em;">PARAMÈTRES D'ENTREPRISE</div>
+              <h3 style="font-size:1.05rem; font-weight:800; color:#1F2937;">Coordonnées Officielle & Identifiants Fiscaux</h3>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="font-weight:700; padding:0.5rem 1rem;">
+              <i data-lucide="save"></i> Enregistrer
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
+            <div>
+              <label class="form-label">Nom Commercial (Devis & App)</label>
+              <input type="text" id="company-name" class="form-input" value="${state.companyInfo.name || 'Ecom Zein OS'}" required>
+            </div>
+            <div>
+              <label class="form-label">Monogramme Logo (Ex: EZ)</label>
+              <input type="text" id="company-monogram" class="form-input" value="${state.companyInfo.monogram || 'EZ'}" maxlength="4" required>
+            </div>
+          </div>
+
+          <div style="margin-bottom:0.85rem;">
+            <label class="form-label">Raison Sociale Officielle (Nom Légal S.A.R.L)</label>
+            <input type="text" id="company-legal-name" class="form-input" value="${state.companyInfo.legalName || 'Ecom Zein Maroc S.A.R.L'}" required>
+          </div>
+
+          <div style="margin-bottom:0.85rem;">
+            <label class="form-label">Activité / Slogan Entête</label>
+            <input type="text" id="company-tagline" class="form-input" value="${state.companyInfo.tagline || 'SYSTÈMES DE GESTION DE FILES D\'ATTENTE & DISPLAYS MÉDICAUX'}" required>
+          </div>
+
+          <div style="margin-bottom:0.85rem;">
+            <label class="form-label">Adresse du Siège Social & Ville</label>
+            <input type="text" id="company-address" class="form-input" value="${state.companyInfo.address || 'Siège Social: Bd Zerktouni, Casablanca'}" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.85rem;">
+            <div>
+              <label class="form-label">ICE (15 chiffres)</label>
+              <input type="text" id="company-ice" class="form-input" value="${state.companyInfo.ice || '003184920000084'}" required>
+            </div>
+            <div>
+              <label class="form-label">RC (Registre)</label>
+              <input type="text" id="company-rc" class="form-input" value="${state.companyInfo.rc || '549201'}" required>
+            </div>
+            <div>
+              <label class="form-label">IF (Fiscal)</label>
+              <input type="text" id="company-if" class="form-input" value="${state.companyInfo.if || '4920194'}" required>
+            </div>
+            <div>
+              <label class="form-label">Patente</label>
+              <input type="text" id="company-patente" class="form-input" value="${state.companyInfo.patente || '394029'}" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
+            <div>
+              <label class="form-label">Téléphone Standard</label>
+              <input type="text" id="company-phone" class="form-input" value="${state.companyInfo.phone || '+212 522-984000'}" required>
+            </div>
+            <div>
+              <label class="form-label">Email Officiel</label>
+              <input type="email" id="company-email" class="form-input" value="${state.companyInfo.email || 'contact@tassnimproduct.shop'}" required>
+            </div>
+          </div>
+
+          <div style="margin-bottom:1rem;">
+            <label class="form-label">RIB Bancaire Officiel (Virements & Acomptes)</label>
+            <input type="text" id="company-rib" class="form-input" value="${state.companyInfo.rib || '011 780 0000123456789012 45 (Attijariwafa Bank)'}" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-weight:800; font-size:0.92rem;">
+            <i data-lucide="check-circle-2"></i> Enregistrer les Modifications & Entête Devis
+          </button>
+        </form>
+
+        <!-- Live Preview Card Block -->
+        <div style="background:white; border:1px solid #CBD5E1; border-radius:12px; padding:1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+          <div style="font-size:0.75rem; font-weight:800; color:#1E40AF; text-transform:uppercase; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem;">
+            <i data-lucide="eye" style="width:16px;"></i> Aperçu Direct de l'Entête Devis
+          </div>
+          
+          <div style="border:1px solid #E2E8F0; border-radius:10px; padding:1.15rem; background:#F8FAFC;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:0.75rem; border-bottom:2px solid #2563EB;">
+              <div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+                  <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center;">${state.companyInfo.monogram || 'EZ'}</div>
+                  <div style="font-size:1.2rem; font-weight:800; color:#1E293B;">${state.companyInfo.name || 'Ecom Zein OS'}</div>
+                </div>
+                <div style="font-size:0.72rem; font-weight:700; color:#2563EB; text-transform:uppercase;">${state.companyInfo.tagline}</div>
+                <div style="font-size:0.7rem; color:#64748B; margin-top:0.25rem; line-height:1.4;">
+                  ${state.companyInfo.legalName} • ${state.companyInfo.address}<br>
+                  ICE: ${state.companyInfo.ice} • RC: ${state.companyInfo.rc} • IF: ${state.companyInfo.if} • Patente: ${state.companyInfo.patente}<br>
+                  Tél: ${state.companyInfo.phone} • Email: ${state.companyInfo.email}
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:1rem; background:#F0F7FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.75rem; font-size:0.75rem; color:#1E3A8A;">
+              <strong>RIB Réglement:</strong> ${state.companyInfo.rib}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    ` : state.adminSubTab === 'users' ? `
       <!-- User Management Header Bar -->
       <div style="background:white; border:1px solid #E2E8F0; border-radius:12px; padding:1.1rem 1.25rem; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
         <div>
@@ -2093,14 +2220,14 @@ function openQuoteModal(quoteId) {
           <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:0.85rem; border-bottom:2px solid #2563EB; margin-bottom:0.85rem;">
             <div>
               <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center;">EZ</div>
-                <div style="font-size:1.3rem; font-weight:800; color:#1E293B; letter-spacing:-0.02em;">Ecom Zein OS</div>
+                <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center;">${state.companyInfo.monogram || 'EZ'}</div>
+                <div style="font-size:1.3rem; font-weight:800; color:#1E293B; letter-spacing:-0.02em;">${state.companyInfo.name || 'Ecom Zein OS'}</div>
               </div>
-              <div style="font-size:0.75rem; font-weight:700; color:#2563EB; text-transform:uppercase; letter-spacing:0.04em;">Systèmes de Gestion de Files d'Attente & Displays Médicaux</div>
+              <div style="font-size:0.75rem; font-weight:700; color:#2563EB; text-transform:uppercase; letter-spacing:0.04em;">${state.companyInfo.tagline || 'SYSTÈMES DE GESTION DE FILES D\'ATTENTE & DISPLAYS MÉDICAUX'}</div>
               <div style="font-size:0.72rem; color:#64748B; margin-top:0.2rem; line-height:1.35;">
-                Ecom Zein Maroc S.A.R.L • Siège Social: Bd Zerktouni, Casablanca<br>
-                ICE: 003184920000084 • RC: 549201 • IF: 4920194 • Patente: 394029<br>
-                Tél: +212 522-984000 • Email: contact@tassnimproduct.shop
+                ${state.companyInfo.legalName || 'Ecom Zein Maroc S.A.R.L'} • ${state.companyInfo.address || 'Siège Social: Bd Zerktouni, Casablanca'}<br>
+                ICE: ${state.companyInfo.ice || '003184920000084'} • RC: ${state.companyInfo.rc || '549201'} • IF: ${state.companyInfo.if || '4920194'} • Patente: ${state.companyInfo.patente || '394029'}<br>
+                Tél: ${state.companyInfo.phone || '+212 522-984000'} • Email: ${state.companyInfo.email || 'contact@tassnimproduct.shop'}
               </div>
             </div>
 
@@ -2178,8 +2305,8 @@ function openQuoteModal(quoteId) {
               <div style="font-size:0.75rem; color:#1E3A8A; line-height:1.4;">
                 • <b>Acompte à la commande (50%):</b> ${acompteVal.toLocaleString()} MAD TTC<br>
                 • <b>Solde à l'installation (50%):</b> ${soldeVal.toLocaleString()} MAD TTC<br>
-                • Mode de règlement: Virement Bancaire ou Chèque / <b>Ecom Zein Maroc</b><br>
-                • RIB Bancaire: <b>011 780 0000123456789012 45 (Attijariwafa Bank)</b>
+                • Mode de règlement: Virement Bancaire ou Chèque / <b>${state.companyInfo.legalName || 'Ecom Zein Maroc'}</b><br>
+                • RIB Bancaire: <b>${state.companyInfo.rib || '011 780 0000123456789012 45 (Attijariwafa Bank)'}</b>
               </div>
             </div>
 
@@ -2224,7 +2351,7 @@ function openQuoteModal(quoteId) {
           </div>
 
           <div style="width:47%; text-align:center; border:1.5px solid #BFDBFE; background:#F0F7FF; border-radius:8px; padding:0.6rem 0.75rem; height:80px; display:flex; flex-direction:column; justify-content:space-between; box-sizing:border-box;">
-            <div style="font-size:0.68rem; font-weight:800; color:#1E40AF; text-transform:uppercase;">POUR ECOM ZEIN MAROC S.A.R.L</div>
+            <div style="font-size:0.68rem; font-weight:800; color:#1E40AF; text-transform:uppercase;">POUR ${(state.companyInfo.legalName || 'ECOM ZEIN MAROC S.A.R.L').toUpperCase()}</div>
             <div style="font-size:0.75rem; font-weight:800; color:#1E3A8A; letter-spacing:0.03em;">[ CACHET & SIGNATURE OFFICIELLE ]</div>
           </div>
         </div>
@@ -4099,6 +4226,29 @@ function processCommissionPayout(e, salespersonId) {
     showToast(`Virement de ${amount.toLocaleString()} MAD versé à ${s.name} via ${method} !`, 'success');
     renderActiveView();
   }
+}
+
+function saveCompanyInfo(e) {
+  if (e) e.preventDefault();
+
+  state.companyInfo = {
+    monogram: (document.getElementById('company-monogram')?.value || 'EZ').trim(),
+    name: (document.getElementById('company-name')?.value || 'Ecom Zein OS').trim(),
+    legalName: (document.getElementById('company-legal-name')?.value || 'Ecom Zein Maroc S.A.R.L').trim(),
+    tagline: (document.getElementById('company-tagline')?.value || 'SYSTÈMES DE GESTION DE FILES D\'ATTENTE & DISPLAYS MÉDICAUX').trim(),
+    address: (document.getElementById('company-address')?.value || 'Siège Social: Bd Zerktouni, Casablanca').trim(),
+    ice: (document.getElementById('company-ice')?.value || '003184920000084').trim(),
+    rc: (document.getElementById('company-rc')?.value || '549201').trim(),
+    if: (document.getElementById('company-if')?.value || '4920194').trim(),
+    patente: (document.getElementById('company-patente')?.value || '394029').trim(),
+    phone: (document.getElementById('company-phone')?.value || '+212 522-984000').trim(),
+    email: (document.getElementById('company-email')?.value || 'contact@tassnimproduct.shop').trim(),
+    rib: (document.getElementById('company-rib')?.value || '011 780 0000123456789012 45 (Attijariwafa Bank)').trim()
+  };
+
+  saveStateToLocalStorage();
+  showToast('✅ Coordonnées Société, ICE, RC et RIB mis à jour avec succès !', 'success');
+  renderActiveView();
 }
 
 // initApp() at line 426 is the single entry point — no duplicate needed
