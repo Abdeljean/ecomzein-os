@@ -4,19 +4,27 @@ import fs from 'fs';
 
 const uploadDir = path.join(process.cwd(), 'storage', 'uploads');
 
-// Ensure directories exist
+// Safe directory resolution
 const subDirs = ['pv', 'factures', 'devis', 'logos'];
-subDirs.forEach(dir => {
-  const fullPath = path.join(uploadDir, dir);
-  if (!fs.existsSync(fullPath)) {
-    fs.mkdirSync(fullPath, { recursive: true });
-  }
-});
+
+try {
+  subDirs.forEach(dir => {
+    const fullPath = path.join(uploadDir, dir);
+    if (!fs.existsSync(fullPath)) {
+      fs.mkdirSync(fullPath, { recursive: true });
+    }
+  });
+} catch (e) {
+  console.warn('[Storage Warning] Could not pre-create upload folders:', e.message);
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const category = req.params.category || 'pv';
     const dest = path.join(uploadDir, subDirs.includes(category) ? category : 'pv');
+    try {
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+    } catch (e) {}
     cb(null, dest);
   },
   filename: (req, file, cb) => {
