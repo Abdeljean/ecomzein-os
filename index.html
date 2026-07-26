@@ -1354,10 +1354,10 @@ body.drawer-open .fab-speed-dial {
     <div class="fab-speed-dial" id="fab-speed-dial">
       <div class="fab-menu-options">
         <button class="fab-option-btn" onclick="toggleSpeedDial(); openNewProspectModal();"><i data-lucide="user-plus"></i> Nouveau Prospect</button>
-        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Formulaire Devis ouvert', 'info');"><i data-lucide="file-text"></i> Nouveau Devis</button>
-        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Formulaire Commande ouvert', 'info');"><i data-lucide="package-plus"></i> Nouvelle Commande</button>
-        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Rappel programmé !', 'success');"><i data-lucide="alarm-clock"></i> Rappel</button>
-        <button class="fab-option-btn" onclick="toggleSpeedDial(); showToast('Tâche ajoutée !', 'success');"><i data-lucide="check-square"></i> Nouvelle Tâche</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); openPackQuoteBuilder();"><i data-lucide="file-text"></i> Nouveau Devis</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); openNewOrderModal();"><i data-lucide="package-plus"></i> Nouvelle Commande</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); openNewReminderModal();"><i data-lucide="alarm-clock"></i> Rappel</button>
+        <button class="fab-option-btn" onclick="toggleSpeedDial(); openNewTaskModal();"><i data-lucide="check-square"></i> Nouvelle Tâche</button>
       </div>
       <button class="mobile-fab" onclick="toggleSpeedDial()"><i data-lucide="plus"></i></button>
     </div>

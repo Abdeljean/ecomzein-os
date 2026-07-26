@@ -4860,4 +4860,333 @@ window.deleteClient = function(clientId) {
   }
 };
 
+// ─── FAB QUICK ACTIONS: NOUVELLE COMMANDE ──────────────────────────────────
+window.openNewOrderModal = function() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  const clientsOptions = state.clients.map(c => `<option value="${c.establishment}">${c.establishment} (${c.city})</option>`).join('');
+  const prospectsOptions = state.prospects.map(p => `<option value="${p.clinic}">${p.clinic} (${p.phone})</option>`).join('');
+  const packsOptions = state.packsData.map(pk => `<option value="${pk.title}" data-price="${pk.priceHT}">${pk.title} — ${pk.priceHT.toLocaleString()} MAD HT</option>`).join('');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="package-plus"></i> Enregistrer une Nouvelle Commande</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveNewOrder(event)">
+      <div class="modal-body" style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Sélectionner le Client / Établissement *</label>
+          <select id="ncmd-client" class="form-input" style="font-size:0.85rem;" required>
+            <optgroup label="Clients Existants">
+              ${clientsOptions}
+            </optgroup>
+            <optgroup label="Prospects Qualifiés">
+              ${prospectsOptions}
+            </optgroup>
+          </select>
+        </div>
+        
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Pack / Solution Commandée *</label>
+          <select id="ncmd-pack" class="form-input" style="font-size:0.85rem;" required onchange="updateNewOrderAmount(this)">
+            ${packsOptions}
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Montant Total TTC (MAD) *</label>
+          <input type="number" id="ncmd-amount" class="form-input" value="22560" required style="font-weight:700;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Acompte Encaissé (MAD) *</label>
+          <input type="number" id="ncmd-advance" class="form-input" value="11280" required style="font-weight:700; color:#16A34A;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Mode de Règlement</label>
+          <select id="ncmd-payment-mode" class="form-input" style="font-size:0.85rem;">
+            <option value="Virement Bancaire">Virement Bancaire</option>
+            <option value="Chèque">Chèque Bancaire</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Effet de Commerce">Effet de Commerce</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Ville de Livraison *</label>
+          <input type="text" id="ncmd-city" class="form-input" value="Casablanca" required>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Statut de la Commande</label>
+          <select id="ncmd-status" class="form-input" style="font-size:0.85rem;">
+            <option value="Confirmé & Validé">Confirmé & Validé</option>
+            <option value="En Attente Acompte">En Attente Acompte</option>
+            <option value="En Cours de Préparation">En Cours de Préparation</option>
+          </select>
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Instructions & Notes Terrain</label>
+          <textarea id="ncmd-notes" class="form-input" rows="2" placeholder="Instructions spécifiques pour le technicien d'installation..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Valider & Créer la Commande</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.updateNewOrderAmount = function(selectElem) {
+  const selectedOpt = selectElem.options[selectElem.selectedIndex];
+  const priceHT = parseFloat(selectedOpt.getAttribute('data-price')) || 18800;
+  const priceTTC = Math.round(priceHT * 1.2);
+  const amountInput = document.getElementById('ncmd-amount');
+  const advanceInput = document.getElementById('ncmd-advance');
+  if (amountInput) amountInput.value = priceTTC;
+  if (advanceInput) advanceInput.value = Math.round(priceTTC / 2);
+};
+
+window.saveNewOrder = function(e) {
+  e.preventDefault();
+  const client = document.getElementById('ncmd-client').value;
+  const pack = document.getElementById('ncmd-pack').value;
+  const amount = parseFloat(document.getElementById('ncmd-amount').value) || 0;
+  const advance = parseFloat(document.getElementById('ncmd-advance').value) || 0;
+  const paymentMode = document.getElementById('ncmd-payment-mode').value;
+  const city = document.getElementById('ncmd-city').value;
+  const status = document.getElementById('ncmd-status').value;
+  const notes = document.getElementById('ncmd-notes').value;
+
+  const newId = `CMD-2026-${100 + state.orders.length + 1}`;
+
+  state.orders.unshift({
+    id: newId,
+    client: client,
+    contactName: 'Responsable Établissement',
+    phone: '+212 661-009988',
+    pack: pack,
+    amount: amount,
+    advance: advance,
+    status: status,
+    paymentStatus: advance >= (amount * 0.4) ? `Acompte Encaissé (${paymentMode})` : 'Acompte Non Payé',
+    date: new Date().toISOString().split('T')[0],
+    city: city,
+    salesperson: state.currentUser?.name || 'Youssef El Amrani',
+    notes: notes
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`🎉 Commande ${newId} (${client}) enregistrée avec succès !`, 'success');
+  state.activeView = 'operations';
+  state.opsSubTab = 'orders';
+  renderActiveView();
+};
+
+// ─── FAB QUICK ACTIONS: PROGRAMMER UN RAPPEL ──────────────────────────────────
+window.openNewReminderModal = function() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  const clientsOptions = state.clients.map(c => `<option value="${c.establishment}">${c.establishment} (${c.contactName})</option>`).join('');
+  const prospectsOptions = state.prospects.map(p => `<option value="${p.clinic}">${p.clinic} (${p.phone})</option>`).join('');
+
+  const now = new Date();
+  now.setHours(now.getHours() + 2);
+  const defaultDateTime = now.toISOString().slice(0, 16);
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="alarm-clock"></i> Programmer un Rappel Client / Relance</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveNewReminder(event)">
+      <div class="modal-body" style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Client / Prospect à Rappeler *</label>
+          <select id="nrpl-client" class="form-input" style="font-size:0.85rem;" required>
+            <optgroup label="Prospects en cours">
+              ${prospectsOptions}
+            </optgroup>
+            <optgroup label="Clients Installés">
+              ${clientsOptions}
+            </optgroup>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Date & Heure du Rappel *</label>
+          <input type="datetime-local" id="nrpl-datetime" class="form-input" value="${defaultDateTime}" required style="font-size:0.85rem;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Niveau de Priorité *</label>
+          <select id="nrpl-priority" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Haute (Urgent)">🔴 Haute (Urgent)</option>
+            <option value="Normale" selected>🟡 Normale</option>
+            <option value="Basse">🟢 Basse</option>
+          </select>
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Motif & Objectif du Rappel *</label>
+          <select id="nrpl-reason" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Relance Devis Transmis">Relance Devis Transmis</option>
+            <option value="Confirmation Acompte 50%">Confirmation Acompte 50%</option>
+            <option value="Planification Installation Terrain">Planification Installation Terrain</option>
+            <option value="Suivi Satisfaction & Garantie">Suivi Satisfaction & Garantie</option>
+            <option value="Autre Demande Commerciale">Autre Demande Commerciale</option>
+          </select>
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Notes & Détails pour la Relance</label>
+          <textarea id="nrpl-notes" class="form-input" rows="2" placeholder="Points importants à aborder lors du coup de téléphone..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Programmer le Rappel</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.saveNewReminder = function(e) {
+  e.preventDefault();
+  const client = document.getElementById('nrpl-client').value;
+  const datetime = document.getElementById('nrpl-datetime').value;
+  const priority = document.getElementById('nrpl-priority').value;
+  const reason = document.getElementById('nrpl-reason').value;
+  const notes = document.getElementById('nrpl-notes').value;
+
+  const dateFormatted = datetime ? datetime.replace('T', ' à ') : 'Aujourd\'hui';
+
+  if (!state.dashboardTasks) state.dashboardTasks = [];
+
+  state.dashboardTasks.unshift({
+    id: `RPL-${Math.floor(100 + Math.random() * 900)}`,
+    time: dateFormatted,
+    title: `📞 Rappel Client — ${client}`,
+    sub: `${reason} • Notes: ${notes || 'Relance programmée'}`,
+    badge: priority.includes('Haute') ? 'Urgent' : 'Rappel',
+    badgeClass: priority.includes('Haute') ? 'badge-red' : 'badge-amber',
+    completed: false
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`⏰ Rappel pour "${client}" programmé pour ${dateFormatted} !`, 'success');
+  renderActiveView();
+};
+
+// ─── FAB QUICK ACTIONS: NOUVELLE TÂCHE ──────────────────────────────────
+window.openNewTaskModal = function() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="check-square"></i> Ajouter une Nouvelle Tâche</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveNewTask(event)">
+      <div class="modal-body" style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Intitulé de la Tâche *</label>
+          <input type="text" id="ntsk-title" class="form-input" placeholder="ex: Vérifier la livraison des bornes à Marrakech..." required style="font-size:0.88rem;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Périmètre / Catégorie *</label>
+          <select id="ntsk-category" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Commercial / Ventes">📊 Commercial & Relance</option>
+            <option value="Installation / Terrain">🔧 Technique & Installation</option>
+            <option value="Finance & Facturation">💰 Finance & Encaissement</option>
+            <option value="Administration">👑 Direction / Admin</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Priorité *</label>
+          <select id="ntsk-priority" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Urgent">🔴 Urgent</option>
+            <option value="Normal" selected>🔵 Normal</option>
+            <option value="Faible">🟢 Faible</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Assigné à *</label>
+          <select id="ntsk-assignee" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Youssef El Amrani">Youssef El Amrani (Chef Ventes)</option>
+            <option value="Sara Loudiyi">Sara Loudiyi (Commerciale Senior)</option>
+            <option value="Amine Kabbaj">Amine Kabbaj (Commercial Terrain)</option>
+            <option value="Karim Bennani">Karim Bennani (Technicien Chief)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Date d'Échéance *</label>
+          <input type="date" id="ntsk-duedate" class="form-input" value="${new Date().toISOString().split('T')[0]}" required style="font-size:0.85rem;">
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Description & Consignes</label>
+          <textarea id="ntsk-desc" class="form-input" rows="2" placeholder="Détails complémentaires de la tâche..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Créer la Tâche</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.saveNewTask = function(e) {
+  e.preventDefault();
+  const title = document.getElementById('ntsk-title').value;
+  const category = document.getElementById('ntsk-category').value;
+  const priority = document.getElementById('ntsk-priority').value;
+  const assignee = document.getElementById('ntsk-assignee').value;
+  const duedate = document.getElementById('ntsk-duedate').value;
+  const desc = document.getElementById('ntsk-desc').value;
+
+  if (!state.dashboardTasks) state.dashboardTasks = [];
+
+  state.dashboardTasks.unshift({
+    id: `TSK-${Math.floor(100 + Math.random() * 900)}`,
+    time: `Échéance: ${duedate}`,
+    title: `☑️ ${title}`,
+    sub: `${category} • Assigné à ${assignee} ${desc ? '— ' + desc : ''}`,
+    badge: priority,
+    badgeClass: priority === 'Urgent' ? 'badge-red' : priority === 'Normal' ? 'badge-blue' : 'badge-green',
+    completed: false
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`☑️ Tâche "${title}" ajoutée avec succès !`, 'success');
+  renderActiveView();
+};
+
 // initApp() at line 426 is the single entry point — no duplicate needed
