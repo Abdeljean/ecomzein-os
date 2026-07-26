@@ -832,29 +832,53 @@ body.drawer-open .fab-speed-dial {
 }
 
 /* Full-Screen Isolated Authentication Mode (Logged Out State) */
+body.auth-mode #sidebar,
 body.auth-mode .sidebar,
 body.auth-mode .topbar,
+body.auth-mode header.topbar,
 body.auth-mode .mobile-bottom-nav,
+body.auth-mode nav.mobile-bottom-nav,
 body.auth-mode .fab-speed-dial,
 body.auth-mode .fab-btn {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
 }
 
-body.auth-mode .main-wrapper {
+body.auth-mode .app-layout {
+  display: block !important;
+  width: 100vw !important;
+  min-height: 100vh !important;
+}
+
+body.auth-mode .main-wrapper,
+body.auth-mode div.main-wrapper {
   margin: 0 !important;
+  margin-left: 0 !important;
   padding: 0 !important;
   width: 100vw !important;
+  max-width: 100vw !important;
   min-height: 100vh !important;
   background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%) !important;
 }
 
-body.auth-mode #view-container {
+body.auth-mode #view-container,
+body.auth-mode main.content-area {
   padding: 0 !important;
   margin: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
   min-height: 100vh !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  background: transparent !important;
 }
 
 /* Shimmer Skeleton Loaders */

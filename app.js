@@ -764,18 +764,42 @@ function renderLoginView() {
   `;
 }
 
+function updateAuthLayoutVisibility() {
+  const isAuth = AuthManager.isAuthenticated();
+  const sidebar = document.getElementById('sidebar');
+  const topbar = document.querySelector('.topbar');
+  const bottomNav = document.querySelector('.mobile-bottom-nav');
+  const fab = document.querySelector('.fab-speed-dial');
+  const wrapper = document.querySelector('.main-wrapper');
+
+  if (!isAuth) {
+    document.body.classList.add('auth-mode');
+    if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
+    if (topbar) topbar.style.setProperty('display', 'none', 'important');
+    if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important');
+    if (fab) fab.style.setProperty('display', 'none', 'important');
+    if (wrapper) wrapper.style.setProperty('margin-left', '0', 'important');
+  } else {
+    document.body.classList.remove('auth-mode');
+    if (sidebar) sidebar.style.removeProperty('display');
+    if (topbar) topbar.style.removeProperty('display');
+    if (bottomNav) bottomNav.style.removeProperty('display');
+    if (fab) fab.style.removeProperty('display');
+    if (wrapper) wrapper.style.removeProperty('margin-left');
+  }
+}
+
 function renderActiveView() {
   const container = document.getElementById('view-container');
   if (!container) return;
 
+  updateAuthLayoutVisibility();
+
   if (!AuthManager.isAuthenticated()) {
-    document.body.classList.add('auth-mode');
     container.innerHTML = renderLoginView();
     safeCreateIcons();
     return;
   }
-
-  document.body.classList.remove('auth-mode');
 
   switch (state.activeView) {
     case 'dashboard': container.innerHTML = renderDashboardView(); break;
