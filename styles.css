@@ -831,6 +831,32 @@ body.drawer-open .fab-speed-dial {
   #printable-quote-area { position: absolute; left: 0; top: 0; width: 100%; }
 }
 
+/* Full-Screen Isolated Authentication Mode (Logged Out State) */
+body.auth-mode .sidebar,
+body.auth-mode .topbar,
+body.auth-mode .mobile-bottom-nav,
+body.auth-mode .fab-speed-dial,
+body.auth-mode .fab-btn {
+  display: none !important;
+}
+
+body.auth-mode .main-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  min-height: 100vh !important;
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%) !important;
+}
+
+body.auth-mode #view-container {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 /* Shimmer Skeleton Loaders */
 .skeleton {
   background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);

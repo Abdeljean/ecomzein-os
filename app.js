@@ -725,28 +725,28 @@ function handleLoginFormSubmit(e) {
 
 function renderLoginView() {
   return `
-    <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 1rem;">
-      <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; width: 100%; max-width: 420px; padding: 1.75rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);">
-        <div style="text-align: center; margin-bottom: 1.25rem;">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #7C3AED); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; margin: 0 auto 0.6rem auto;">EZ</div>
-          <h2 style="font-size: 1.25rem; font-weight: 800; color: #1F2937;">Connexion Ecom Zein OS</h2>
-          <p style="font-size: 0.8rem; color: #64748B; margin-top: 0.15rem;">Authentification sécurisée & Espace Métier</p>
+    <div style="min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);">
+      <div style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; width: 100%; max-width: 440px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); animation: fadeSlideIn 0.25s ease-out;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #2563EB, #7C3AED); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 0.75rem auto; box-shadow: 0 10px 20px -5px rgba(37,99,235,0.4);">EZ</div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: #1F2937; letter-spacing: -0.01em;">Ecom Zein OS</h2>
+          <p style="font-size: 0.82rem; color: #64748B; margin-top: 0.2rem;">Plateforme de Gestion & Execution Enterprise</p>
         </div>
 
         <form onsubmit="handleLoginFormSubmit(event)">
-          <div style="margin-bottom: 0.85rem;">
-            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Adresse Email Professionnelle *</label>
-            <input type="email" id="login-email" class="form-input" value="roya.creative@gmail.com" placeholder="nom@entreprise.com" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
-          </div>
-
           <div style="margin-bottom: 1rem;">
-            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Mot de passe *</label>
-            <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
+            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Adresse Email Professionnelle *</label>
+            <input type="email" id="login-email" class="form-input" value="roya.creative@gmail.com" placeholder="nom@entreprise.com" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
           </div>
 
           <div style="margin-bottom: 1.15rem;">
-            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Sélectionnez votre Rôle Métier</label>
-            <select id="login-role" class="form-input" style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Mot de passe *</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
+          </div>
+
+          <div style="margin-bottom: 1.35rem;">
+            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Sélectionnez votre Rôle Métier</label>
+            <select id="login-role" class="form-input" style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; border-radius: 10px;">
               <option value="owner" selected>👑 Super Admin / Direction (Accès Total)</option>
               <option value="commercial">📊 Commercial Senior</option>
               <option value="confirmation">✅ Agent Confirmation</option>
@@ -755,7 +755,7 @@ function renderLoginView() {
             </select>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.88rem; font-weight: 800; border-radius: 10px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 0.92rem; font-weight: 800; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
             🔒 Se Connecter à l'Espace Sécurisé ➔
           </button>
         </form>
@@ -769,10 +769,13 @@ function renderActiveView() {
   if (!container) return;
 
   if (!AuthManager.isAuthenticated()) {
+    document.body.classList.add('auth-mode');
     container.innerHTML = renderLoginView();
     safeCreateIcons();
     return;
   }
+
+  document.body.classList.remove('auth-mode');
 
   switch (state.activeView) {
     case 'dashboard': container.innerHTML = renderDashboardView(); break;
