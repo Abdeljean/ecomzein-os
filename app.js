@@ -17,26 +17,39 @@ const EnterpriseIdentitySystem = {
 
   authenticate(email, password, selectedRole = 'owner') {
     const roleNames = {
-      owner: '👑 Owner (Accès Total)',
+      owner: '👑 Super Admin / Direction',
       commercial: '📊 Commercial Senior',
       confirmation: '✅ Agent Confirmation',
       technician: '🔧 Technicien Terrain',
       finance: '💰 Responsable Finance'
     };
 
-    // Check account locking & security threshold
-    const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === email.toLowerCase());
-    if (existingMember && existingMember.isLocked) {
-      systemLogger.log('Security', `Tentative de connexion bloquée (Compte verrouillé): ${email}`);
-      showToast('⛔ Compte verrouillé suite à plusieurs tentatives échouées. Contactez l\'administrateur.', 'error');
-      return false;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    // Password validation for Production Super Admin
+    if (cleanEmail === 'roya.creative@gmail.com') {
+      if (password !== 'Jb462920@.' && password !== '462920@.') {
+        showToast('⛔ Mot de passe incorrect !', 'error');
+        return false;
+      }
+    } else {
+      const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
+      if (existingMember && existingMember.isLocked) {
+        showToast('⛔ Compte verrouillé. Contactez l\'administrateur.', 'error');
+        return false;
+      }
+      if (existingMember && existingMember.password && existingMember.password !== password) {
+        showToast('⛔ Mot de passe incorrect !', 'error');
+        return false;
+      }
     }
 
+    const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
     const user = {
       tenantId: this.tenantId,
-      id: existingMember ? existingMember.id : `USR-${Math.floor(100 + Math.random() * 900)}`,
-      name: existingMember ? existingMember.name : (email.split('@')[0].replace('.', ' ').toUpperCase() || 'Utilisateur Zein'),
-      email: email,
+      id: existingMember ? existingMember.id : 'USR-100',
+      name: existingMember ? existingMember.name : (cleanEmail === 'roya.creative@gmail.com' ? 'Roya Creative' : cleanEmail.split('@')[0].toUpperCase()),
+      email: cleanEmail,
       role: selectedRole,
       roleLabel: roleNames[selectedRole] || selectedRole,
       emailVerified: true,
@@ -75,9 +88,9 @@ const EnterpriseIdentitySystem = {
       newValue: `Session Active (${user.lastLoginIp})`
     });
 
-    systemLogger.log('EIS Auth', `Authentification réussie: ${user.name} (${user.email})`, `Tenant: ${this.tenantId} | Session: ${sessionToken.token.slice(0, 16)}...`);
-    showToast(`🔒 Connexion sécurisée réussie ! Bienvenue ${user.name}`, 'success');
-    switchView('dashboard');
+    systemLogger.log('EIS Auth', `Connexion réussie pour ${user.email} (${user.roleLabel})`);
+    showToast(`Bienvenue ${user.name} ! Connexion réussie.`, 'success');
+    renderActiveView();
     return true;
   },
 
@@ -160,11 +173,11 @@ const state = {
 
   isAuthenticated: localStorage.getItem('nobti_logged_out') === 'true' ? false : true, // Explicit session logout check
   currentUser: JSON.parse(localStorage.getItem('nobti_current_user') || 'null') || {
-    id: 'USR-101',
-    name: 'Youssef El Amrani',
-    email: 'youssef@ecomzein.ma',
+    id: 'USR-100',
+    name: 'Roya Creative',
+    email: 'roya.creative@gmail.com',
     role: 'owner',
-    roleLabel: '👑 Owner (Accès Total)'
+    roleLabel: '👑 Super Admin / Direction'
   },
   userRole: 'owner',
   sidebarCollapsed: false,
@@ -283,48 +296,15 @@ const state = {
   // Utilisateurs & Rôles
   teamMembers: [
     { 
-      id: 'USR-101', 
-      name: 'Youssef El Amrani', 
+      id: 'USR-100', 
+      name: 'Roya Creative', 
       roleKey: 'owner',
-      role: '👑 Owner / Direction', 
-      email: 'youssef@ecomzein.ma', 
+      role: '👑 Super Admin / Direction', 
+      email: 'roya.creative@gmail.com', 
       status: 'Actif', 
       isLocked: false, 
       lastAccess: 'Aujourd\'hui',
       permissions: { viewProspects: true, editPrices: true, validateDeposits: true, techPv: true, adminLogs: true, viewRevenue: true }
-    },
-    { 
-      id: 'USR-102', 
-      name: 'Sara Loudiyi', 
-      roleKey: 'commercial',
-      role: '📊 Commerciale Senior', 
-      email: 'sara@ecomzein.ma', 
-      status: 'Actif', 
-      isLocked: false, 
-      lastAccess: 'Hier',
-      permissions: { viewProspects: true, editPrices: false, validateDeposits: false, techPv: false, adminLogs: false, viewRevenue: false }
-    },
-    { 
-      id: 'USR-103', 
-      name: 'Amine Kabbaj', 
-      roleKey: 'confirmation',
-      role: '✅ Agent Confirmation', 
-      email: 'amine@ecomzein.ma', 
-      status: 'Actif', 
-      isLocked: false, 
-      lastAccess: 'Aujourd\'hui',
-      permissions: { viewProspects: true, editPrices: false, validateDeposits: true, techPv: false, adminLogs: false, viewRevenue: false }
-    },
-    { 
-      id: 'USR-104', 
-      name: 'Mehdi Tazi', 
-      roleKey: 'technician',
-      role: '🔧 Chef Technicien Terrain', 
-      email: 'mehdi@ecomzein.ma', 
-      status: 'Actif', 
-      isLocked: false, 
-      lastAccess: 'Aujourd\'hui',
-      permissions: { viewProspects: false, editPrices: false, validateDeposits: false, techPv: true, adminLogs: false, viewRevenue: false }
     }
   ],
 
@@ -756,18 +736,18 @@ function renderLoginView() {
         <form onsubmit="handleLoginFormSubmit(event)">
           <div style="margin-bottom: 0.85rem;">
             <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Adresse Email Professionnelle *</label>
-            <input type="email" id="login-email" class="form-input" value="youssef@ecomzein.ma" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
+            <input type="email" id="login-email" class="form-input" value="roya.creative@gmail.com" placeholder="nom@entreprise.com" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
           </div>
 
           <div style="margin-bottom: 1rem;">
             <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Mot de passe *</label>
-            <input type="password" id="login-password" class="form-input" value="••••••••••••" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.88rem;">
           </div>
 
           <div style="margin-bottom: 1.15rem;">
             <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Sélectionnez votre Rôle Métier</label>
             <select id="login-role" class="form-input" style="width: 100%; padding: 0.6rem 0.85rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
-              <option value="owner" selected>👑 Owner / Direction (Accès Total)</option>
+              <option value="owner" selected>👑 Super Admin / Direction (Accès Total)</option>
               <option value="commercial">📊 Commercial Senior</option>
               <option value="confirmation">✅ Agent Confirmation</option>
               <option value="technician">🔧 Technicien Terrain</option>
@@ -775,21 +755,10 @@ function renderLoginView() {
             </select>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.7rem; font-size: 0.88rem; font-weight: 700; border-radius: 10px;">
-            🔒 Se Connecter ➔
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.88rem; font-weight: 800; border-radius: 10px;">
+            🔒 Se Connecter à l'Espace Sécurisé ➔
           </button>
         </form>
-
-        <!-- Fast Demo Quick Connect Buttons -->
-        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed #E2E8F0;">
-          <div style="font-size: 0.72rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 0.5rem; text-align: center;">Accès Démo Rapide (1-Click)</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
-            <button class="btn btn-secondary btn-sm" onclick="AuthManager.login('owner@ecomzein.ma', 'demo', 'owner')" style="font-size: 0.72rem; justify-content: center;">👑 Owner</button>
-            <button class="btn btn-secondary btn-sm" onclick="AuthManager.login('commercial@ecomzein.ma', 'demo', 'commercial')" style="font-size: 0.72rem; justify-content: center;">📊 Commercial</button>
-            <button class="btn btn-secondary btn-sm" onclick="AuthManager.login('conf@ecomzein.ma', 'demo', 'confirmation')" style="font-size: 0.72rem; justify-content: center;">✅ Agent Conf</button>
-            <button class="btn btn-secondary btn-sm" onclick="AuthManager.login('tech@ecomzein.ma', 'demo', 'technician')" style="font-size: 0.72rem; justify-content: center;">🔧 Technicien</button>
-          </div>
-        </div>
       </div>
     </div>
   `;
