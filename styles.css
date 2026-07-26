@@ -321,7 +321,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .user-pill { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #60A5FA); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #00C9A7 0%, #0284C7 50%, #1E40AF 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.88rem; flex-shrink: 0; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3); }
 .user-info { display: flex; flex-direction: column; overflow: hidden; }
 .user-name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
 .user-role { font-size: 0.72rem; color: var(--text-muted); }
