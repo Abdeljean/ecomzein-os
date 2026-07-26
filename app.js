@@ -864,7 +864,7 @@ function renderDashboardView() {
   const todayInstallations = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
 
   // Calculate daily progress (completed / total tasks)
-  const totalTasks = 8 + 5 + 3 + todayInstallations + overduePayments;
+  const totalTasks = 8 + 5 + (overduePayments || 3) + todayInstallations;
   const completedTasks = Math.round(totalTasks * 0.35); // simulated progress
   const progressPct = Math.round((completedTasks / totalTasks) * 100);
 
@@ -873,7 +873,6 @@ function renderDashboardView() {
     { icon: '💬', label: 'Confirmations WhatsApp', count: 5, color: '#7C3AED', bg: '#F5F3FF', view: 'confirmations', toast: 'Confirmations en attente' },
     { icon: '💰', label: 'Paiements à relancer', count: overduePayments || 3, color: '#F59E0B', bg: '#FFFBEB', view: 'finance', toast: 'Paiements en retard' },
     { icon: '🚚', label: 'Installations aujourd\'hui', count: todayInstallations, color: '#16A34A', bg: '#F0FDF4', view: 'operations', toast: 'Installations planifiées' },
-    { icon: '✅', label: 'Tâches en cours', count: 4, color: '#0891B2', bg: '#ECFEFF', view: 'dashboard', toast: 'Tâches du jour' },
   ];
 
   const todayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
