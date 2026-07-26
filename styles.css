@@ -826,7 +826,9 @@ body.drawer-open .fab-speed-dial {
 }
 
 @media print {
-  body {
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
     background: white !important;
     color: #000 !important;
     margin: 0 !important;
@@ -834,18 +836,39 @@ body.drawer-open .fab-speed-dial {
   }
 
   /* Hide app, modals overlay, topbar & navigation */
-  #app, .modal-header, .modal-footer, #modal-overlay, .fab-speed-dial, .mobile-bottom-nav, .topbar, #sidebar, .no-print {
+  #app, 
+  .modal-header, 
+  .modal-footer, 
+  #modal-overlay, 
+  .fab-speed-dial, 
+  .mobile-bottom-nav, 
+  .topbar, 
+  #sidebar, 
+  .no-print {
     display: none !important;
     visibility: hidden !important;
   }
 
-  /* Render printable devis full width */
+  /* Reset modal containers so they don't clip overflow when printing */
+  #modal, .modal-body {
+    position: static !important;
+    display: block !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Render printable devis full width A4 */
   #printable-quote-area {
     display: block !important;
     visibility: visible !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: static !important;
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
@@ -862,7 +885,7 @@ body.drawer-open .fab-speed-dial {
 
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm;
+    margin: 10mm 12mm;
   }
 }
 

@@ -1974,6 +1974,29 @@ function saveNewProspect(e) {
   renderActiveView();
 }
 
+function downloadQuotePDF(quoteId) {
+  const element = document.getElementById('printable-quote-area');
+  if (!element) return;
+  const fileName = `Devis_EcomZein_${quoteId}.pdf`;
+
+  showToast('⏳ Téléchargement du fichier PDF en cours...', 'info');
+
+  if (window.html2pdf) {
+    const opt = {
+      margin:       [8, 8, 8, 8],
+      filename:     fileName,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    window.html2pdf().set(opt).from(element).save().then(() => {
+      showToast(`✅ Devis ${fileName} téléchargé ! Vous pouvez l'envoyer au client.`, 'success');
+    });
+  } else {
+    window.print();
+  }
+}
+
 function sendQuoteWhatsApp(quoteId) {
   const q = state.quotes.find(x => x.id === quoteId);
   if (!q) return;
@@ -2167,12 +2190,15 @@ function openQuoteModal(quoteId) {
     <div class="modal-footer no-print" style="padding:1rem 1.25rem; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; background:white;">
       <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
       
-      <div style="display:flex; gap:0.5rem;">
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         <button class="btn btn-secondary" onclick="sendQuoteWhatsApp('${q.id}')" style="background:#25D366; color:white; border:none; font-weight:700;">
-          <i data-lucide="message-square"></i> Envoyer via WhatsApp
+          <i data-lucide="message-square"></i> WhatsApp
         </button>
-        <button class="btn btn-primary" onclick="window.print();" style="font-weight:800; padding:0.6rem 1.25rem;">
-          <i data-lucide="printer"></i> Imprimer / Télécharger PDF (A4)
+        <button class="btn btn-primary" onclick="downloadQuotePDF('${q.id}')" style="background:linear-gradient(135deg, #2563EB, #1D4ED8); font-weight:800; padding:0.6rem 1.25rem;">
+          <i data-lucide="download"></i> 📥 Télécharger Fichier PDF (.pdf)
+        </button>
+        <button class="btn btn-secondary" onclick="window.print();" style="font-weight:700;">
+          <i data-lucide="printer"></i> Imprimer A4
         </button>
       </div>
     </div>
