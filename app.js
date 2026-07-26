@@ -431,6 +431,16 @@ function generateStressTestProspects(count = 1000) {
   renderActiveView();
 }
 
+function clearStressTestProspects() {
+  const initialCount = state.prospects.length;
+  state.prospects = state.prospects.filter(p => !p.id.startsWith('PRO-STRESS-'));
+  const removedCount = initialCount - state.prospects.length;
+  saveStateToLocalStorage();
+  systemLogger.log('Stress Test', `Données stress test supprimées (${removedCount} éléments)`, `Prospects restants: ${state.prospects.length}`);
+  showToast(`🧹 ${removedCount} prospects de stress test supprimés ! Base nettoyée (${state.prospects.length} prospects).`, 'info');
+  renderActiveView();
+}
+
 // ─── SINGLE APP ENTRY POINT ───────────────────────────────────────────────────
 function initApp() {
   loadStateFromLocalStorage();
@@ -1004,7 +1014,7 @@ function renderSalesView() {
             </tr>
           </thead>
           <tbody>
-            ${state.prospects.map(p => `
+            ${state.prospects.slice(0, 100).map(p => `
               <tr>
                 <td style="cursor:pointer;" onclick="openProspectDrawer('${p.id}')">
                   <div style="font-weight:700; color:#2563EB;">${p.clinic}</div>
@@ -1021,6 +1031,11 @@ function renderSalesView() {
             `).join('')}
           </tbody>
         </table>
+        ${state.prospects.length > 100 ? `
+          <div style="text-align:center; padding:0.75rem; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:0.8rem; color:#64748B; font-weight:600;">
+            ⚡ Affichage des 100 premiers prospects sur ${state.prospects.length.toLocaleString()} au total (Optimisé pour la vitesse 60 FPS)
+          </div>
+        ` : ''}
       </div>
     ` : state.salesSubTab === 'quotes' ? `
       <div class="table-container">
@@ -1780,9 +1795,16 @@ function renderAdministrationView() {
             <strong style="font-size:0.95rem; color:#1E40AF;">⚡ Performance Stress Testing</strong>
             <p style="font-size:0.8rem; color:#3B82F6; margin:0.1rem 0 0 0;">Testez la fluidité de la recherche, filtres et drawer avec 1 000 prospects en mémoire.</p>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="generateStressTestProspects(1000)">
-            🚀 Générer +1000 Prospects Stress Test
-          </button>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="generateStressTestProspects(1000)">
+              🚀 Générer +1000 Prospects
+            </button>
+            ${state.prospects.some(p => p.id.startsWith('PRO-STRESS-')) ? `
+              <button class="btn btn-secondary btn-sm" style="background:#FEF2F2; color:#EF4444; border-color:#FCA5A5;" onclick="clearStressTestProspects()">
+                🧹 Vider Données Stress Test
+              </button>
+            ` : ''}
+          </div>
         </div>
 
         <!-- Live System Logs & Errors Table -->
