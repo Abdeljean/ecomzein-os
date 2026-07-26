@@ -2005,13 +2005,54 @@ filename:     fileName,
   }
 }
 
-function sendQuoteWhatsApp(quoteId) {
+async function sendQuoteWhatsApp(quoteId) {
   const q = state.quotes.find(x => x.id === quoteId);
   if (!q) return;
+
   const totalTTC = (q.totalTTC || 0).toLocaleString();
   const acompte = Math.round((q.totalTTC || 0) / 2).toLocaleString();
-  const msg = `Bonjour, voici le Devis Officiel *Ecom Zein OS* (Réf: ${q.id}):\n\n*Client:* ${q.client}\n*Pack Matériel:* ${q.pack}\n*Montant Total TTC:* ${totalTTC} MAD\n*Acompte 50% exigé:* ${acompte} MAD\n\n📄 Consulter le Devis Officiel en ligne:\nhttps://tassnimproduct.shop/?quote=${q.id}\n\nMerci de votre confiance!\n*Ecom Zein OS Maroc*`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  const fileName = `Devis_EcomZein_${q.id}.pdf`;
+  const element = document.getElementById('printable-quote-area');
+
+  showToast('🚀 Préparation du Devis PDF & WhatsApp...', 'info');
+
+  // Try Native Mobile File Share if supported (Android / iOS)
+  if (element && window.html2pdf && navigator.canShare) {
+    try {
+      const pdfBlob = await window.html2pdf().set({
+        margin: [8, 8, 8, 8],
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(element).output('blob');
+
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      
+      if (navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: `Devis Ecom Zein ${q.id}`,
+          text: `Bonjour, voici le Devis Officiel *Ecom Zein OS* (Réf: ${q.id}) pour ${q.client}. Montant Total TTC: ${totalTTC} MAD.`
+        });
+        showToast('✅ Fichier PDF partagé sur WhatsApp !', 'success');
+        return;
+      }
+    } catch (err) {
+      console.log('Mobile share bypassed, fallback to download + open WhatsApp:', err);
+    }
+  }
+
+  // Fallback for Desktop: Auto-download PDF file & open WhatsApp
+  if (element && window.html2pdf) {
+    downloadQuotePDF(quoteId);
+  }
+
+  const msg = `Bonjour, voici le Devis Officiel *Ecom Zein OS* (Réf: ${q.id}):\n\n*Client:* ${q.client}\n*Pack Matériel:* ${q.pack}\n*Montant Total TTC:* ${totalTTC} MAD\n*Acompte 50% exigé:* ${acompte} MAD\n\n📎 *Le fichier PDF '${fileName}' a été téléchargé dans vos Téléchargements. Veuillez le joindre dans ce chat.*` +
+    `\n\n🌐 Consulter le Devis en ligne:\nhttps://tassnimproduct.shop/?quote=${q.id}\n\nMerci de votre confiance!\n*Ecom Zein OS Maroc*`;
+
+  setTimeout(() => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }, 400);
 }
 
 function openQuoteModal(quoteId) {
