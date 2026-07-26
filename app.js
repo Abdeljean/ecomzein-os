@@ -423,7 +423,7 @@ function generateStressTestProspects(count = 1000) {
   renderActiveView();
 }
 
-// Initialisation
+// ─── SINGLE APP ENTRY POINT ───────────────────────────────────────────────────
 function initApp() {
   loadStateFromLocalStorage();
   setupEventListeners();
@@ -432,6 +432,17 @@ function initApp() {
   renderActiveView();
   setupKeyboardShortcuts();
   updateBadgeCounts();
+  // Lucide icons may load after defer — retry once icons are ready
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  } else {
+    window.addEventListener('load', function() {
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+        updateBadgeCounts();
+      }
+    });
+  }
 }
 
 if (document.readyState === 'loading') {
@@ -3398,21 +3409,4 @@ function processCommissionPayout(e, salespersonId) {
   }
 }
 
-// Auto-initialize View & Lucide Icons on Initial Page Load
-function initEcomZeinOSApp() {
-  if (typeof renderActiveView === 'function') {
-    renderActiveView();
-  }
-  if (window.lucide && typeof lucide.createIcons === 'function') {
-    lucide.createIcons();
-  }
-}
-
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  setTimeout(initEcomZeinOSApp, 50);
-} else {
-  document.addEventListener('DOMContentLoaded', initEcomZeinOSApp);
-}
-
-
-
+// initApp() at line 426 is the single entry point — no duplicate needed
