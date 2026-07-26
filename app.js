@@ -144,6 +144,9 @@ const EnterpriseIdentitySystem = {
 };
 
 const AuthManager = EnterpriseIdentitySystem; // Alias backward compatibility
+AuthManager.login = function(email, password, role) {
+  return EnterpriseIdentitySystem.authenticate(email, password, role);
+};
 
 // État Global de l'Application
 const state = {
@@ -166,6 +169,9 @@ const state = {
   sidebarPinned: localStorage.getItem('nobti_sidebar_pinned') === 'true',
   mobileMenuOpen: false,
   pwaInstallPrompt: null,
+  auditLogs: [],
+  packs: [],
+  supplements: [],
 
   // Prospects Ventes
   prospects: [
@@ -317,6 +323,7 @@ function saveStateToLocalStorage() {
       salespeople: state.salespeople,
       commissionDeals: state.commissionDeals,
       notifications: state.notifications,
+      auditLogs: state.auditLogs,
       packs: state.packs,
       supplements: state.supplements
     };
@@ -340,6 +347,7 @@ function loadStateFromLocalStorage() {
       if (parsed.salespeople && Array.isArray(parsed.salespeople)) state.salespeople = parsed.salespeople;
       if (parsed.commissionDeals && Array.isArray(parsed.commissionDeals)) state.commissionDeals = parsed.commissionDeals;
       if (parsed.notifications && Array.isArray(parsed.notifications)) state.notifications = parsed.notifications;
+      if (parsed.auditLogs && Array.isArray(parsed.auditLogs)) state.auditLogs = parsed.auditLogs;
       if (parsed.packs && Array.isArray(parsed.packs)) state.packs = parsed.packs;
       if (parsed.supplements && Array.isArray(parsed.supplements)) state.supplements = parsed.supplements;
     } else {
@@ -793,12 +801,16 @@ function renderDashboardView() {
     { icon: '✅', label: 'Tâches en cours', count: 4, color: '#0891B2', bg: '#ECFEFF', view: 'dashboard', toast: 'Tâches du jour' },
   ];
 
+  const todayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
+  const formattedToday = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
+  const currentUserName = state.currentUser?.name?.split(' ')[0] || 'Youssef';
+
   return `
     <!-- Header -->
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
       <div>
         <h1 style="font-size:1.5rem; font-weight:800; color:#1F2937;">🔥 Today's Work</h1>
-        <p style="color:#64748B; font-size:0.82rem;">Ven. 25 Juillet — Bonjour Youssef !</p>
+        <p style="color:#64748B; font-size:0.82rem;">${formattedToday} — Bonjour ${currentUserName} !</p>
       </div>
       <div style="display:flex; align-items:center; gap:0.5rem;">
         <span style="font-size:0.78rem; font-weight:700; color:${progressPct >= 70 ? '#16A34A' : '#F59E0B'};">${completedTasks}/${totalTasks} terminées</span>
@@ -1393,6 +1405,7 @@ function confirmOrderAction(orderId) {
     });
 
     showToast(`Acompte validé pour ${orderId} ! Mission terrain ${newInstId} générée automatiquement.`, 'success');
+    saveStateToLocalStorage();
     renderActiveView();
   }
 }
@@ -1431,6 +1444,7 @@ function validateInstallationAction(instId) {
     });
 
     showToast(`Installation ${instId} clôturée avec succès ! Garantie 12M activée automatiquement.`, 'success');
+    saveStateToLocalStorage();
     renderActiveView();
   }
 }
@@ -1834,7 +1848,8 @@ function openNewProspectModal() {
     </form>
   `;
   overlay.classList.add('active');
-  lucide.createIcons();
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
 }
 
 function saveNewProspect(e) {
@@ -1852,7 +1867,8 @@ function saveNewProspect(e) {
     pack: 'Pack Dentaire & TV',
     status: 'À Contacter',
     value,
-    salesperson: 'Youssef El Amrani'
+    salesperson: 'Youssef El Amrani',
+    stepIndex: 0
   });
 
   closeModal();
@@ -1884,7 +1900,8 @@ function openQuoteModal(quoteId) {
     </div>
   `;
   overlay.classList.add('active');
-  lucide.createIcons();
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
 }
 
 function openGlobalCreateModal() {
@@ -1993,7 +2010,10 @@ function closeModal() {
 }
 
 function triggerCall(phone) {
-  showToast(`Appel vers ${phone}...`, 'info');
+  if (phone) {
+    window.location.href = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+    showToast(`Appel vers ${phone}...`, 'info');
+  }
 }
 
 function triggerWhatsApp(phone) {
@@ -2262,6 +2282,7 @@ function savePackQuote(e, packName, totalTTC, totalHT, tva) {
   });
 
   closeModal();
+  saveStateToLocalStorage();
   state.activeView = 'sales';
   state.salesSubTab = 'quotes';
   showToast(`Devis ${newId} créé avec succès pour ${clientVal} !`, 'success');
@@ -2346,7 +2367,8 @@ function openNewPackModal() {
     </form>
   `;
   overlay.classList.add('active');
-  lucide.createIcons();
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
 }
 
 function calcTTC(htId, ttcId) {
@@ -2365,7 +2387,7 @@ function saveNewPack(e) {
   const detailsRaw = document.getElementById('apk-det').value;
   const details = detailsRaw.split(',').map(s => s.trim()).filter(Boolean);
 
-  packsData.unshift({
+  const newPackObj = {
     id: `PCK-0${packsData.length + 1}`,
     name,
     category,
@@ -2373,9 +2395,13 @@ function saveNewPack(e) {
     priceHT,
     priceTTC,
     details: details.length > 0 ? details : ['Équipement complet Ecom Zein OS', 'Garantie 12 Mois']
-  });
+  };
+  packsData.unshift(newPackObj);
+  state.packs.unshift(newPackObj);
 
   closeModal();
+  saveStateToLocalStorage();
+  state.activeView = 'packs';
   showToast(`Pack "${name}" ajouté au catalogue !`, 'success');
   renderActiveView();
 }
@@ -2426,7 +2452,8 @@ function openNewSupplementModal() {
     </form>
   `;
   overlay.classList.add('active');
-  lucide.createIcons();
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
 }
 
 function saveNewSupplement(e) {
@@ -2438,7 +2465,7 @@ function saveNewSupplement(e) {
   const image = tempUploadedSuppImg || 'hardware_printer.jpg';
   const details = document.getElementById('asp-det').value;
 
-  supplementsData.unshift({
+  const newSuppObj = {
     id: `SUP-0${supplementsData.length + 1}`,
     name,
     category,
@@ -2446,11 +2473,77 @@ function saveNewSupplement(e) {
     priceHT,
     priceTTC,
     details
-  });
+  };
+  supplementsData.unshift(newSuppObj);
+  state.supplements.unshift(newSuppObj);
 
   closeModal();
+  saveStateToLocalStorage();
+  state.activeView = 'packs';
   showToast(`Option "${name}" ajoutée aux suppléments !`, 'success');
   renderActiveView();
+}
+
+function openNewClientModal() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="user-plus"></i> Nouveau Client Répertoire</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveNewClient(event)">
+      <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom de l'Établissement / Clinique *</label>
+          <input type="text" id="ncl-est" class="form-input" placeholder="ex: Clinique Dentaire Al Mansour" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom du Contact Principal *</label>
+          <input type="text" id="ncl-contact" class="form-input" placeholder="Dr. Karim Benali" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Téléphone *</label>
+          <input type="text" id="ncl-phone" class="form-input" placeholder="+212 661-000000" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Email Professionnel</label>
+          <input type="email" id="ncl-email" class="form-input" placeholder="contact@clinique.ma">
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Ville *</label>
+          <input type="text" id="ncl-city" class="form-input" placeholder="Casablanca" required>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Adresse Complète *</label>
+          <input type="text" id="ncl-addr" class="form-input" placeholder="ex: 120 Boulevard Zerktouni, Casablanca" required>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Lien Google Maps GPS (Optionnel)</label>
+          <input type="url" id="ncl-maps" class="form-input" placeholder="https://maps.google.com/?q=33.5899,-7.6255">
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Pack Solution Installé</label>
+          <input type="text" id="ncl-pack" class="form-input" placeholder="ex: Pack Dentaire & TV 55&quot;">
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Statut Client</label>
+          <select id="ncl-status" class="form-input">
+            <option value="Sous Garantie">Sous Garantie</option>
+            <option value="Client VIP">Client VIP</option>
+            <option value="Actif">Actif</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer le Client</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
 }
 
 /* ==========================================================================
@@ -2513,66 +2606,7 @@ function renderClientsView() {
   `;
 }
 
-function openNewClientModal() {
-  const modal = document.getElementById('modal');
-  const overlay = document.getElementById('modal-overlay');
-  modal.innerHTML = `
-    <div class="modal-header" style="padding:1rem 1.25rem;">
-      <h3 style="font-size:1.1rem;"><i data-lucide="user-plus"></i> Nouveau Client - Ajouter au Répertoire</h3>
-      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
-    </div>
-    <form onsubmit="saveNewClient(event)">
-      <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; padding:1rem 1.25rem;">
-        <div style="grid-column: span 2;">
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom de l'Établissement / Clinique *</label>
-          <input type="text" id="ncl-est" class="form-input" placeholder="ex: Clinique Dentaire Al Hikma" required>
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom Complet du Contact / Médecin *</label>
-          <input type="text" id="ncl-contact" class="form-input" placeholder="ex: Dr. Amine Benjelloun" required>
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Téléphone *</label>
-          <input type="text" id="ncl-phone" class="form-input" placeholder="+212 661-001122" required>
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Adresse Email</label>
-          <input type="email" id="ncl-email" class="form-input" placeholder="contact@clinique.ma" required>
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Ville *</label>
-          <input type="text" id="ncl-city" class="form-input" placeholder="ex: Casablanca" required>
-        </div>
-        <div style="grid-column: span 2;">
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Adresse Complète *</label>
-          <input type="text" id="ncl-addr" class="form-input" placeholder="ex: 120 Boulevard Zerktouni, Casablanca" required>
-        </div>
-        <div style="grid-column: span 2;">
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Lien Google Maps GPS (Optionnel)</label>
-          <input type="url" id="ncl-maps" class="form-input" placeholder="https://maps.google.com/?q=33.5899,-7.6255">
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Pack Solution Installé</label>
-          <input type="text" id="ncl-pack" class="form-input" placeholder="ex: Pack Dentaire & TV 55&quot;">
-        </div>
-        <div>
-          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Statut Client</label>
-          <select id="ncl-status" class="form-input">
-            <option value="Sous Garantie">Sous Garantie</option>
-            <option value="Client VIP">Client VIP</option>
-            <option value="Actif">Actif</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-        <button type="submit" class="btn btn-primary">Enregistrer le Client</button>
-      </div>
-    </form>
-  `;
-  overlay.classList.add('active');
-  lucide.createIcons();
-}
+
 
 function saveNewClient(e) {
   e.preventDefault();
@@ -2604,6 +2638,7 @@ function saveNewClient(e) {
   });
 
   closeModal();
+  saveStateToLocalStorage();
   showToast(`Client ${establishment} ajouté avec succès !`, 'success');
   renderActiveView();
 }
@@ -3404,6 +3439,7 @@ function processCommissionPayout(e, salespersonId) {
     });
 
     closeModal();
+    saveStateToLocalStorage();
     showToast(`Virement de ${amount.toLocaleString()} MAD versé à ${s.name} via ${method} !`, 'success');
     renderActiveView();
   }

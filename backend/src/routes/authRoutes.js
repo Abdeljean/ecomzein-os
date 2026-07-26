@@ -7,6 +7,7 @@ import * as authController from '../controllers/authController.js';
 const router = Router();
 
 router.post('/login', loginLimiter, validate(loginSchema), authController.login);
+router.post('/logout', authenticateToken, authController.logout);
 router.post('/forgot-password', validate(passwordResetRequestSchema), authController.requestPasswordReset);
 router.post('/reset-password', validate(passwordResetConfirmSchema), authController.resetPassword);
 router.get('/me', authenticateToken, authController.getMe);

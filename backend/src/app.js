@@ -38,10 +38,7 @@ app.use(helmet({
 }));
 
 // CORS Policy
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
+app.use(cors(config.cors));
 
 // Body Parser
 app.use(express.json());

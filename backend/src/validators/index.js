@@ -45,3 +45,13 @@ export const validateInstallationSchema = z.object({
   installationId: z.string().min(1, { message: 'ID installation requis' }),
   signedReport: z.boolean().refine(val => val === true, { message: 'Rapport PV signé obligatoire (Règle 002)' })
 });
+
+export const quoteSchema = z.object({
+  client: z.string().min(2, { message: 'Nom client requis' }),
+  doctor: z.string().optional(),
+  pack: z.string().min(2, { message: 'Nom du pack requis' }),
+  totalHt: z.number().nonnegative({ message: 'Montant HT valide requis' }),
+  tva: z.number().nonnegative({ message: 'TVA valide requise' }),
+  totalTtc: z.number().nonnegative({ message: 'Montant TTC valide requis' })
+});
+
