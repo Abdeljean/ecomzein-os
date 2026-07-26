@@ -826,9 +826,44 @@ body.drawer-open .fab-speed-dial {
 }
 
 @media print {
-  body * { visibility: hidden; }
-  #printable-quote-area, #printable-quote-area * { visibility: visible; }
-  #printable-quote-area { position: absolute; left: 0; top: 0; width: 100%; }
+  body {
+    background: white !important;
+    color: #000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide app, modals overlay, topbar & navigation */
+  #app, .modal-header, .modal-footer, #modal-overlay, .fab-speed-dial, .mobile-bottom-nav, .topbar, #sidebar, .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Render printable devis full width */
+  #printable-quote-area {
+    display: block !important;
+    visibility: visible !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  #printable-quote-area * {
+    visibility: visible !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
 }
 
 /* Full-Screen Isolated Authentication Mode (Logged Out State) */

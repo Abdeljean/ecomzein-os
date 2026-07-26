@@ -1974,28 +1974,210 @@ function saveNewProspect(e) {
   renderActiveView();
 }
 
+function sendQuoteWhatsApp(quoteId) {
+  const q = state.quotes.find(x => x.id === quoteId);
+  if (!q) return;
+  const totalTTC = (q.totalTTC || 0).toLocaleString();
+  const acompte = Math.round((q.totalTTC || 0) / 2).toLocaleString();
+  const msg = `Bonjour, voici le Devis Officiel *Ecom Zein OS* (Réf: ${q.id}):\n\n*Client:* ${q.client}\n*Pack Matériel:* ${q.pack}\n*Montant Total TTC:* ${totalTTC} MAD\n*Acompte 50% exigé:* ${acompte} MAD\n\n📄 Consulter le Devis Officiel en ligne:\nhttps://tassnimproduct.shop/?quote=${q.id}\n\nMerci de votre confiance!\n*Ecom Zein OS Maroc*`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
 function openQuoteModal(quoteId) {
   const q = state.quotes.find(x => x.id === quoteId);
   if (!q) return;
+  
+  const totalTTC = q.totalTTC || 48000;
+  const totalHT = Math.round(totalTTC / 1.2);
+  const tvaVal = Math.round(totalTTC - totalHT);
+  const acompteVal = Math.round(totalTTC / 2);
+  const soldeVal = totalTTC - acompteVal;
+
+  const todayStr = q.date || new Date().toLocaleDateString('fr-FR');
+  const expiryDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR');
+
   const modal = document.getElementById('modal');
   const overlay = document.getElementById('modal-overlay');
+
+  modal.style.maxWidth = '850px';
+  modal.style.width = '95%';
+
   modal.innerHTML = `
-    <div class="modal-header">
-      <h3>Devis PDF #${q.id}</h3>
+    <div class="modal-header no-print" style="padding:1rem 1.25rem; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="font-size:1.1rem; color:#1F2937; display:flex; align-items:center; gap:0.5rem;">
+        <span style="background:#EFF6FF; color:#2563EB; padding:0.2rem 0.55rem; border-radius:6px; font-weight:800; font-size:0.85rem;">PDF</span>
+        Devis Officiel Enterprise #${q.id}
+      </h3>
       <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
     </div>
-    <div class="modal-body">
-      <div style="background:white; border:1px solid #CBD5E1; padding:1.25rem; border-radius:8px;">
-        <h2>Ecom Zein OS</h2>
-        <p style="margin-bottom:1rem; color:#64748B;">Client: ${q.client}</p>
-        <div style="font-size:1.2rem; font-weight:800; color:#2563EB;">Total TTC: ${q.totalTTC.toLocaleString()} MAD</div>
+    
+    <div class="modal-body" style="padding:1.5rem; background:#F8FAFC; max-height:80vh; overflow-y:auto;">
+      
+      <!-- PRINTABLE AREA (A4 PAGE TEMPLATE) -->
+      <div id="printable-quote-area" style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:2rem; box-shadow:0 10px 30px rgba(0,0,0,0.05); font-family:'Inter', sans-serif;">
+        
+        <!-- Header: Logo & Legal Infos -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:1.5rem; border-bottom:2px solid #2563EB; margin-bottom:1.5rem;">
+          <div>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+              <div style="width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">EZ</div>
+              <div style="font-size:1.4rem; font-weight:800; color:#1F2937; letter-spacing:-0.02em;">Ecom Zein OS</div>
+            </div>
+            <div style="font-size:0.82rem; font-weight:700; color:#2563EB; text-transform:uppercase; letter-spacing:0.04em;">Systèmes de Gestion de Files d'Attente & Displays Médicaux</div>
+            <div style="font-size:0.75rem; color:#64748B; margin-top:0.3rem; line-height:1.4;">
+              Ecom Zein Maroc S.A.R.L • Siège Social: Bd Zerktouni, Casablanca<br>
+              ICE: 003184920000084 • RC: 549201 • IF: 4920194 • Patente: 394029<br>
+              Tél: +212 522-984000 • Email: contact@tassnimproduct.shop
+            </div>
+          </div>
+
+          <div style="text-align:right;">
+            <div style="font-size:1.5rem; font-weight:900; color:#1E3A8A; letter-spacing:0.02em; text-transform:uppercase;">DEVIS</div>
+            <div style="font-size:1rem; font-weight:800; color:#2563EB; margin-top:0.1rem;">#${q.id}</div>
+            <div style="margin-top:0.5rem; background:#EFF6FF; border:1px solid #BFDBFE; padding:0.4rem 0.75rem; border-radius:8px; display:inline-block;">
+              <div style="font-size:0.72rem; color:#1E40AF; font-weight:700;">DATE D'ÉMISSION</div>
+              <div style="font-size:0.85rem; font-weight:800; color:#1F2937;">${todayStr}</div>
+            </div>
+            <div style="font-size:0.72rem; color:#EF4444; font-weight:700; margin-top:0.3rem;">Validité: 15 jours (Jusqu'au ${expiryDate})</div>
+          </div>
+        </div>
+
+        <!-- Two Column Client & Salesperson Block -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+          <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:1rem;">
+            <div style="font-size:0.72rem; font-weight:800; color:#64748B; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">DESTINATAIRE / CLIENT</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#1F2937;">${q.client}</div>
+            <div style="font-size:0.82rem; color:#475569; margin-top:0.25rem;">📍 ${q.city || 'Casablanca, Maroc'}</div>
+            <div style="font-size:0.82rem; color:#475569;">📞 ${q.phone || '+212 661-009988'}</div>
+            <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Statut Dossier: <span style="color:#16A34A; font-weight:700;">✅ Qualifié / Validé</span></div>
+          </div>
+
+          <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:1rem;">
+            <div style="font-size:0.72rem; font-weight:800; color:#64748B; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">RESPONSABLE COMMERCIAL DÉDIÉ</div>
+            <div style="font-size:1rem; font-weight:800; color:#1F2937;">${q.salesperson || state.currentUser.name}</div>
+            <div style="font-size:0.82rem; color:#475569; margin-top:0.25rem;">📧 ${state.currentUser.email}</div>
+            <div style="font-size:0.82rem; color:#475569;">🏛️ Division Solutions Médicales & Enterprise</div>
+            <div style="font-size:0.75rem; color:#2563EB; font-weight:700; margin-top:0.25rem;">Garantie Matérielle: 12 Mois Incluses</div>
+          </div>
+        </div>
+
+        <!-- Itemized Table -->
+        <table style="width:100%; border-collapse:collapse; margin-bottom:1.5rem; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#1E293B; color:white; text-align:left;">
+              <th style="padding:0.75rem 1rem; border-top-left-radius:8px; border-bottom-left-radius:8px;">Désignation des Équipements & Prestations</th>
+              <th style="padding:0.75rem; text-align:center;">Qté</th>
+              <th style="padding:0.75rem; text-align:right;">P.U. HT</th>
+              <th style="padding:0.75rem; text-align:center;">TVA</th>
+              <th style="padding:0.75rem 1rem; text-align:right; border-top-right-radius:8px; border-bottom-right-radius:8px;">Total HT (MAD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #E2E8F0;">
+              <td style="padding:0.85rem 1rem;">
+                <div style="font-weight:800; color:#1F2937; font-size:0.92rem;">${q.pack}</div>
+                <div style="font-size:0.78rem; color:#64748B; margin-top:0.2rem; line-height:1.35;">
+                  • Écran/Borne Tactile HD Qualité Médicale & Distributeur de Tickets Thermique<br>
+                  • Licence Logiciel Ecom Zein Queue Enterprise (Serveur Local Inclus)<br>
+                  • Câblage IP, Installation Technique, Paramétrage & Formation du Personnel
+                </div>
+              </td>
+              <td style="padding:0.85rem; text-align:center; font-weight:700;">1</td>
+              <td style="padding:0.85rem; text-align:right; font-weight:700;">${totalHT.toLocaleString()}</td>
+              <td style="padding:0.85rem; text-align:center; font-weight:600; color:#64748B;">20%</td>
+              <td style="padding:0.85rem 1rem; text-align:right; font-weight:800; color:#1F2937;">${totalHT.toLocaleString()}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #E2E8F0; background:#F8FAFC;">
+              <td style="padding:0.65rem 1rem;">
+                <div style="font-weight:700; color:#334155; font-size:0.82rem;">🛡️ Pack Garantie & Support Technique Dédié</div>
+                <div style="font-size:0.75rem; color:#64748B;">Support 7j/7, Échange Matériel à Neuf & Assistance à Distance</div>
+              </td>
+              <td style="padding:0.65rem; text-align:center; font-weight:700;">1</td>
+              <td style="padding:0.65rem; text-align:right; font-weight:700; color:#16A34A;">Inclus</td>
+              <td style="padding:0.65rem; text-align:center; font-weight:600;">20%</td>
+              <td style="padding:0.65rem 1rem; text-align:right; font-weight:800; color:#16A34A;">0 MAD</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Totals & Payment Conditions Block -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+          <div style="width:55%; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:12px; padding:1rem;">
+            <div style="font-size:0.75rem; font-weight:800; color:#1E40AF; text-transform:uppercase; margin-bottom:0.4rem;">💡 CONDITIONS DE RÈGLEMENT & MODALITÉS</div>
+            <div style="font-size:0.8rem; color:#1E3A8A; line-height:1.45;">
+              • <b>Acompte à la commande (50%):</b> ${acompteVal.toLocaleString()} MAD TTC<br>
+              • <b>Solde à l'installation / livraison (50%):</b> ${soldeVal.toLocaleString()} MAD TTC<br>
+              • Mode de règlement: Virement Bancaire ou Chèque à l'ordre de <b>Ecom Zein Maroc</b>.<br>
+              • RIB Bancaire: <b>011 780 0000123456789012 45 (Attijariwafa Bank)</b>
+            </div>
+          </div>
+
+          <div style="width:40%; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px; padding:1rem; text-align:right;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem; font-size:0.85rem; color:#475569;">
+              <span>Sous-Total HT:</span>
+              <span style="font-weight:700; color:#1F2937;">${totalHT.toLocaleString()} MAD</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem; font-size:0.85rem; color:#475569;">
+              <span>TVA (20%):</span>
+              <span style="font-weight:700; color:#1F2937;">${tvaVal.toLocaleString()} MAD</span>
+            </div>
+            <div style="border-top:2px solid #2563EB; padding-top:0.5rem; display:flex; justify-content:space-between; font-size:1.15rem; font-weight:900; color:#1E3A8A;">
+              <span>TOTAL TTC:</span>
+              <span>${totalTTC.toLocaleString()} MAD</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges Value Propositions -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+          <div style="border:1px solid #E2E8F0; border-radius:10px; padding:0.6rem 0.8rem; text-align:center; background:#F8FAFC;">
+            <div style="font-size:1.1rem;">🛡️</div>
+            <div style="font-weight:800; font-size:0.78rem; color:#1F2937; margin-top:0.2rem;">Garantie 12 Mois</div>
+            <div style="font-size:0.7rem; color:#64748B;">Échange à neuf en cas de panne</div>
+          </div>
+          <div style="border:1px solid #E2E8F0; border-radius:10px; padding:0.6rem 0.8rem; text-align:center; background:#F8FAFC;">
+            <div style="font-size:1.1rem;">⚡</div>
+            <div style="font-weight:800; font-size:0.78rem; color:#1F2937; margin-top:0.2rem;">Installation Inclus</div>
+            <div style="font-size:0.7rem; color:#64748B;">Prise en charge technique complète</div>
+          </div>
+          <div style="border:1px solid #E2E8F0; border-radius:10px; padding:0.6rem 0.8rem; text-align:center; background:#F8FAFC;">
+            <div style="font-size:1.1rem;">🎓</div>
+            <div style="font-weight:800; font-size:0.78rem; color:#1F2937; margin-top:0.2rem;">Formation du Personnel</div>
+            <div style="font-size:0.7rem; color:#64748B;">Support & assistance d'équipe</div>
+          </div>
+        </div>
+
+        <!-- Signatures & Stamp Box -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; padding-top:1rem; border-top:1px dashed #CBD5E1;">
+          <div style="width:45%; text-align:center; border:1px dashed #CBD5E1; border-radius:10px; padding:0.85rem; height:90px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="font-size:0.72rem; font-weight:800; color:#64748B; text-transform:uppercase;">BON POUR ACCORD & CACHET CLIENT</div>
+            <div style="font-size:0.7rem; color:#94A3B8;">Mention "Lu et approuvé" + Signature</div>
+          </div>
+
+          <div style="width:45%; text-align:center; border:1px solid #BFDBFE; background:#EFF6FF; border-radius:10px; padding:0.85rem; height:90px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="font-size:0.72rem; font-weight:800; color:#1E40AF; text-transform:uppercase;">POUR ECOM ZEIN MAROC S.A.R.L</div>
+            <div style="font-size:0.8rem; font-weight:800; color:#1E3A8A; letter-spacing:0.05em;">[ CACHET & SIGNATURE OFFICIELLE ]</div>
+          </div>
+        </div>
+
       </div>
     </div>
-    <div class="modal-footer">
+
+    <!-- Modal Footer Actions (no-print) -->
+    <div class="modal-footer no-print" style="padding:1rem 1.25rem; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; background:white;">
       <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
-      <button class="btn btn-primary" onclick="window.print();">Imprimer PDF</button>
+      
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn btn-secondary" onclick="sendQuoteWhatsApp('${q.id}')" style="background:#25D366; color:white; border:none; font-weight:700;">
+          <i data-lucide="message-square"></i> Envoyer via WhatsApp
+        </button>
+        <button class="btn btn-primary" onclick="window.print();" style="font-weight:800; padding:0.6rem 1.25rem;">
+          <i data-lucide="printer"></i> Imprimer / Télécharger PDF (A4)
+        </button>
+      </div>
     </div>
   `;
+
   overlay.classList.add('active');
   document.body.classList.add('modal-open');
   safeCreateIcons();
