@@ -143,8 +143,13 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar.collapsed .badge-count,
 .sidebar.collapsed .user-info,
 .sidebar.collapsed .role-switcher,
+.sidebar.collapsed #role-switcher-container,
+.sidebar.collapsed .logout-btn,
 .sidebar.collapsed .user-pill button {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -162,6 +167,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar.collapsed .brand-logo {
   gap: 0;
+  margin: 0 auto;
 }
 
 .sidebar.collapsed .nav-item {
@@ -170,8 +176,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar.collapsed .user-pill {
-  justify-content: center;
-  padding: 0.4rem 0;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0.5rem 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+.sidebar.collapsed .user-pill > div {
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+}
+
+.sidebar.collapsed .avatar {
+  margin: 0 auto !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
 
 .sidebar-header {
