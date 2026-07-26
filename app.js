@@ -1595,7 +1595,8 @@ function renderFinanceView() {
         <h1 class="page-title"><i data-lucide="dollar-sign"></i> Finances & Cash Flow Métier</h1>
         <p class="page-subtitle">Suivi du recouvrement, factures échues et support SAV.</p>
       </div>
-      <div style="display:flex; gap:0.4rem; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+      <div style="display:flex; gap:0.4rem; overflow-x:auto; -webkit-overflow-scrolling:touch; align-items:center;">
+        <button class="btn btn-success btn-sm" onclick="openRecordPaymentModal()"><i data-lucide="plus-circle"></i> + Encaisser Acompte / Solde</button>
         <button class="btn ${state.financeSubTab === 'invoices' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.financeSubTab='invoices'; renderActiveView();">Recouvrement & Factures</button>
         <button class="btn ${state.financeSubTab === 'support' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.financeSubTab='support'; renderActiveView();">Support Client SAV (${state.supportTickets.length})</button>
       </div>
@@ -1605,25 +1606,25 @@ function renderFinanceView() {
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.25rem;">
       <div class="card" style="border-top:4px solid #EF4444; padding:1rem;">
         <div style="font-size:0.78rem; font-weight:700; color:#EF4444; margin-bottom:0.2rem;">🔴 OUTSTANDING (EN RETARD)</div>
-        <div style="font-size:1.6rem; font-weight:800; color:#EF4444;">29 400 MAD</div>
-        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">1 Facture à relancer immédiatement</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#EF4444;">${state.payments.filter(p => p.balanceRemaining > 0 && p.isOverdue).reduce((s, p) => s + p.balanceRemaining, 0).toLocaleString()} MAD</div>
+        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">${state.payments.filter(p => p.balanceRemaining > 0 && p.isOverdue).length} Facture(s) en retard</div>
       </div>
 
       <div class="card" style="border-top:4px solid #F59E0B; padding:1rem;">
-        <div style="font-size:0.78rem; font-weight:700; color:#D97706; margin-bottom:0.2rem;">🟠 UPCOMING (À ÉCHÉANCE)</div>
-        <div style="font-size:1.6rem; font-weight:800; color:#D97706;">57 000 MAD</div>
-        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Échéance sous 7 jours</div>
+        <div style="font-size:0.78rem; font-weight:700; color:#D97706; margin-bottom:0.2rem;">🟠 UPCOMING (RESTE À ENCAISSER)</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#D97706;">${state.payments.reduce((s, p) => s + p.balanceRemaining, 0).toLocaleString()} MAD</div>
+        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Total des soldes clients</div>
       </div>
 
       <div class="card" style="border-top:4px solid #16A34A; padding:1rem;">
         <div style="font-size:0.78rem; font-weight:700; color:#16A34A; margin-bottom:0.2rem;">🟩 COLLECTED (ENCAISSÉ)</div>
-        <div style="font-size:1.6rem; font-weight:800; color:#16A34A;">114 000 MAD</div>
-        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Reglements validés en banque</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#16A34A;">${state.payments.reduce((s, p) => s + p.amountPaid, 0).toLocaleString()} MAD</div>
+        <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Règlements validés en banque</div>
       </div>
 
       <div class="card" style="border-top:4px solid #2563EB; padding:1rem;">
         <div style="font-size:0.78rem; font-weight:700; color:#2563EB; margin-bottom:0.2rem;">🟦 TAUX RECOUVREMENT</div>
-        <div style="font-size:1.6rem; font-weight:800; color:#2563EB;">91.2%</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#2563EB;">${Math.round((state.payments.reduce((s, p) => s + p.amountPaid, 0) / (state.payments.reduce((s, p) => s + p.amountPaid + p.balanceRemaining, 0) || 1)) * 100)}%</div>
         <div style="font-size:0.75rem; color:#64748B; margin-top:0.25rem;">Objectif mensuel: 95%</div>
       </div>
     </div>
@@ -1638,7 +1639,7 @@ function renderFinanceView() {
               <th>Montant Payé</th>
               <th>Solde Restant</th>
               <th>Statut Recouvrement</th>
-              <th style="text-align:right;">Actions Relance</th>
+              <th style="text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1651,12 +1652,16 @@ function renderFinanceView() {
                 </td>
                 <td style="font-weight:700; color:#16A34A;">${p.amountPaid.toLocaleString()} MAD</td>
                 <td style="font-weight:800; color:${p.balanceRemaining > 0 ? '#EF4444' : '#64748B'};">${p.balanceRemaining.toLocaleString()} MAD</td>
-                <td>${p.isOverdue ? '<span class="badge badge-urgent-red">🔴 EN RETARD</span>' : '<span class="badge badge-success-green">✓ Vérifié</span>'}</td>
+                <td>${p.isOverdue ? '<span class="badge badge-urgent-red">🔴 EN RETARD</span>' : p.balanceRemaining === 0 ? '<span class="badge badge-success-green">✓ Reglé 100%</span>' : '<span class="badge badge-action-blue">Acompte Reçu</span>'}</td>
                 <td style="text-align:right;">
-                  ${p.balanceRemaining > 0 ? 
-                    `<button class="btn btn-primary btn-sm" onclick="triggerCall('${p.client}')"><i data-lucide="phone"></i> Relancer</button>` : 
-                    `<button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Reglé</button>`
-                  }
+                  <div style="display:inline-flex; gap:0.3rem;">
+                    ${p.balanceRemaining > 0 ? `
+                      <button class="btn btn-success btn-sm" onclick="openRecordPaymentModal('${p.invoiceNo}')" title="Encaisser le solde"><i data-lucide="dollar-sign"></i> Encaisser</button>
+                      <button class="btn btn-secondary btn-sm" onclick="triggerCall('${p.client}')" title="Relancer par téléphone"><i data-lucide="phone"></i></button>
+                    ` : `
+                      <button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Reglé</button>
+                    `}
+                  </div>
                 </td>
               </tr>
             `).join('')}
@@ -5186,6 +5191,119 @@ window.saveNewTask = function(e) {
   closeModal();
   saveStateToLocalStorage();
   showToast(`☑️ Tâche "${title}" ajoutée avec succès !`, 'success');
+  renderActiveView();
+};
+
+// ─── ENCAISSEMENT INTERACTIF & RECOUVREMENT FINANCE ──────────────────────────
+window.openRecordPaymentModal = function(targetInvoiceNo) {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  const pendingPayments = state.payments.filter(p => p.balanceRemaining > 0);
+  const optionsHTML = pendingPayments.map(p => `
+    <option value="${p.invoiceNo}" ${p.invoiceNo === targetInvoiceNo ? 'selected' : ''}>
+      ${p.invoiceNo} — ${p.client} (Reste: ${p.balanceRemaining.toLocaleString()} MAD)
+    </option>
+  `).join('');
+
+  const defaultInvoice = pendingPayments.find(p => p.invoiceNo === targetInvoiceNo) || pendingPayments[0] || state.payments[0];
+  const defaultBalance = defaultInvoice ? defaultInvoice.balanceRemaining : 11280;
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="dollar-sign"></i> Encaisser un Acompte / Solde Client</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveRecordedPayment(event)">
+      <div class="modal-body" style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Facture & Client à Encaisser *</label>
+          <select id="recpay-invoice" class="form-input" style="font-size:0.85rem;" required onchange="updatePaymentModalBalance(this)">
+            ${optionsHTML.length ? optionsHTML : '<option value="">Aucune facture en attente de solde</option>'}
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Montant Encaissé (MAD) *</label>
+          <input type="number" id="recpay-amount" class="form-input" value="${defaultBalance}" required style="font-weight:700; color:#16A34A;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Mode de Règlement *</label>
+          <select id="recpay-mode" class="form-input" style="font-size:0.85rem;" required>
+            <option value="Virement Bancaire">Virement Bancaire</option>
+            <option value="Chèque Bancaire">Chèque Bancaire</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Effet de Commerce">Effet de Commerce</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Référence / N° de Pièce *</label>
+          <input type="text" id="recpay-ref" class="form-input" value="VIR-2026-${Math.floor(1000 + Math.random() * 9000)}" required style="font-size:0.85rem;">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Date de Réception *</label>
+          <input type="date" id="recpay-date" class="form-input" value="${new Date().toISOString().split('T')[0]}" required style="font-size:0.85rem;">
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; display:block;">Notes & Confirmation de Banque</label>
+          <textarea id="recpay-notes" class="form-input" rows="2" placeholder="Numéro de compte, banque émettrice ou remarques comptables..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-success"><i data-lucide="check-circle"></i> Valider l'Encaissement & Actualiser le Solde</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.updatePaymentModalBalance = function(selectElem) {
+  const invNo = selectElem.value;
+  const p = state.payments.find(x => x.invoiceNo === invNo);
+  const amountInput = document.getElementById('recpay-amount');
+  if (p && amountInput) {
+    amountInput.value = p.balanceRemaining;
+  }
+};
+
+window.saveRecordedPayment = function(e) {
+  e.preventDefault();
+  const invNo = document.getElementById('recpay-invoice').value;
+  const amount = parseFloat(document.getElementById('recpay-amount').value) || 0;
+  const mode = document.getElementById('recpay-mode').value;
+  const ref = document.getElementById('recpay-ref').value;
+
+  const p = state.payments.find(x => x.invoiceNo === invNo);
+  if (!p) return;
+
+  p.amountPaid += amount;
+  p.balanceRemaining = Math.max(0, p.balanceRemaining - amount);
+  if (p.balanceRemaining <= 0) {
+    p.isOverdue = false;
+  }
+
+  // Update corresponding order payment status
+  const order = state.orders.find(o => o.id === p.orderId);
+  if (order) {
+    order.advance += amount;
+    if (p.balanceRemaining <= 0) {
+      order.paymentStatus = `Reglé 100% (${mode})`;
+    } else {
+      order.paymentStatus = `Acompte Reçu (${mode})`;
+    }
+  }
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`🎉 Encaissement de ${amount.toLocaleString()} MAD validé (${ref}) !`, 'success');
   renderActiveView();
 };
 
