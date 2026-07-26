@@ -1339,32 +1339,259 @@ body.drawer-open .fab-speed-dial {
         background: linear-gradient(90deg, #2563EB, #7C3AED);
         border-radius: 99px;
         transition: width 0.4s ease;
-        animation: splashLoad 1.8s ease-in-out forwards;
+        animation: splashLoad 2s ease-in-out forwards;
       "></div>
     </div>
+    <p style="font-size:0.72rem; color:#94A3B8; margin-top:0.5rem;">Patientez un instant...</p>
     <style>
       @keyframes splashLoad {
-        0% { width: 0% }
-        60% { width: 80% }
+        0%   { width: 0% }
+        50%  { width: 70% }
+        80%  { width: 90% }
         100% { width: 100% }
+      }
+      @keyframes splashPulse {
+        0%, 100% { box-shadow: 0 8px 24px rgba(37,99,235,0.3); transform: scale(1); }
+        50%       { box-shadow: 0 12px 36px rgba(37,99,235,0.5); transform: scale(1.04); }
       }
     </style>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════
+       PWA INSTALL BANNER — Android natif + iOS guide étape par étape
+       Katban automatiquement la première visite sur mobile
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="pwa-install-banner" style="
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 99998;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+    animation: slideUpBanner 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  ">
+    <style>
+      @keyframes slideUpBanner {
+        from { transform: translateY(120%); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
+      }
+      #pwa-install-banner .pwa-card {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+        padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+        font-family: 'Inter', -apple-system, sans-serif;
+      }
+      #pwa-install-banner .pwa-handle {
+        width: 40px; height: 4px;
+        background: #E2E8F0; border-radius: 99px;
+        margin: 0 auto 1rem;
+      }
+      #pwa-install-banner .pwa-row {
+        display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem;
+      }
+      #pwa-install-banner .pwa-logo {
+        width: 52px; height: 52px; border-radius: 13px;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white; font-size: 1.35rem; font-weight: 900;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+      }
+      #pwa-install-banner .pwa-title {
+        font-size: 1rem; font-weight: 800; color: #1F2937; line-height: 1.2;
+      }
+      #pwa-install-banner .pwa-sub {
+        font-size: 0.75rem; color: #64748B; margin-top: 0.15rem;
+      }
+      #pwa-install-banner .pwa-feats {
+        display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
+      }
+      #pwa-install-banner .pwa-feat {
+        background: #F1F5F9; border-radius: 99px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.7rem; font-weight: 600; color: #475569;
+        white-space: nowrap;
+      }
+      #pwa-install-banner .pwa-btn-install {
+        width: 100%; padding: 0.85rem;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white; border: none; border-radius: 13px;
+        font-size: 0.95rem; font-weight: 800;
+        cursor: pointer; letter-spacing: 0.01em;
+        box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+        transition: transform 0.15s, box-shadow 0.15s;
+        margin-bottom: 0.5rem;
+      }
+      #pwa-install-banner .pwa-btn-install:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+      }
+      #pwa-install-banner .pwa-btn-dismiss {
+        width: 100%; padding: 0.6rem;
+        background: transparent; color: #94A3B8;
+        border: none; border-radius: 10px;
+        font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      }
+      /* iOS Guide steps */
+      #pwa-ios-guide { display: none; }
+      #pwa-ios-guide .ios-step {
+        display: flex; align-items: center; gap: 0.75rem;
+        background: #F8FAFC; border-radius: 10px; padding: 0.65rem 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+      #pwa-ios-guide .ios-step-num {
+        width: 26px; height: 26px; border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white; font-size: 0.75rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      #pwa-ios-guide .ios-step-text {
+        font-size: 0.82rem; color: #374151; font-weight: 500; line-height: 1.3;
+      }
+      #pwa-ios-guide .ios-step-text strong { color: #1F2937; }
+    </style>
+
+    <div class="pwa-card">
+      <div class="pwa-handle"></div>
+
+      <!-- App Identity Row -->
+      <div class="pwa-row">
+        <div class="pwa-logo">EZ</div>
+        <div>
+          <div class="pwa-title">Ecom Zein OS</div>
+          <div class="pwa-sub">📲 Installer l'application sur votre téléphone</div>
+        </div>
+        <button onclick="closePWABanner()" style="margin-left:auto; background:none; border:none; font-size:1.3rem; color:#94A3B8; cursor:pointer; padding:0.25rem; line-height:1;">✕</button>
+      </div>
+
+      <!-- Feature badges -->
+      <div class="pwa-feats">
+        <span class="pwa-feat">⚡ Ultra-rapide</span>
+        <span class="pwa-feat">📡 Fonctionne hors ligne</span>
+        <span class="pwa-feat">🔔 Notifications</span>
+        <span class="pwa-feat">💾 Sans téléchargement</span>
+      </div>
+
+      <!-- Android: native install button -->
+      <div id="pwa-android-section">
+        <button class="pwa-btn-install" onclick="triggerPWAInstallBanner()">
+          ⬇️ &nbsp; Installer sur l'écran d'accueil
+        </button>
+        <button class="pwa-btn-dismiss" onclick="closePWABanner()">Non merci, continuer dans le navigateur</button>
+      </div>
+
+      <!-- iOS: step-by-step guide -->
+      <div id="pwa-ios-guide">
+        <div style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.6rem;">Comment installer sur iPhone / iPad :</div>
+        <div class="ios-step">
+          <div class="ios-step-num">1</div>
+          <div class="ios-step-text">Appuyez sur le bouton <strong>Partager</strong> <span style="font-size:1rem;">⬆️</span> en bas de Safari</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-num">2</div>
+          <div class="ios-step-text">Faites défiler et sélectionnez <strong>"Sur l'écran d'accueil"</strong> 📲</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-num">3</div>
+          <div class="ios-step-text">Appuyez sur <strong>"Ajouter"</strong> en haut à droite ✅</div>
+        </div>
+        <button class="pwa-btn-dismiss" onclick="closePWABanner()" style="margin-top:0.5rem;">OK, j'ai compris !</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/app.js" defer></script>
   <script>
-    // Hide splash once DOM + app.js are ready
+    // ─── SPLASH HIDE ───────────────────────────────────────────
     window.addEventListener('load', function() {
       setTimeout(function() {
         var splash = document.getElementById('app-loading-splash');
         if (splash) {
-          splash.style.transition = 'opacity 0.4s ease';
+          splash.style.transition = 'opacity 0.45s ease';
           splash.style.opacity = '0';
-          setTimeout(function() { splash.style.display = 'none'; }, 420);
+          setTimeout(function() { splash.style.display = 'none'; }, 460);
         }
-      }, 300);
+        // Show PWA install banner after splash hides
+        setTimeout(showPWAInstallBanner, 1800);
+      }, 400);
+    });
+
+    // ─── PWA INSTALL BANNER LOGIC ──────────────────────────────
+    var _pwaPrompt = null;
+    var _isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var _isAndroid = /Android/.test(navigator.userAgent);
+    var _isMobile = _isiOS || _isAndroid || window.innerWidth < 768;
+    var _isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    var _alreadyDismissed = localStorage.getItem('ez_pwa_dismissed_v1');
+
+    // Capture Android native prompt
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      _pwaPrompt = e;
+    });
+
+    function showPWAInstallBanner() {
+      // Don't show if: already installed, already dismissed, not mobile
+      if (_isStandalone || _alreadyDismissed || !_isMobile) return;
+
+      var banner = document.getElementById('pwa-install-banner');
+      if (!banner) return;
+
+      if (_isiOS) {
+        // iOS: show step-by-step guide
+        document.getElementById('pwa-android-section').style.display = 'none';
+        document.getElementById('pwa-ios-guide').style.display = 'block';
+      } else {
+        // Android: show native prompt button (or fallback guide)
+        document.getElementById('pwa-android-section').style.display = 'block';
+        document.getElementById('pwa-ios-guide').style.display = 'none';
+      }
+
+      banner.style.display = 'block';
+    }
+
+    function triggerPWAInstallBanner() {
+      if (_pwaPrompt) {
+        _pwaPrompt.prompt();
+        _pwaPrompt.userChoice.then(function(result) {
+          if (result.outcome === 'accepted') {
+            closePWABanner();
+            localStorage.setItem('ez_pwa_dismissed_v1', '1');
+          }
+          _pwaPrompt = null;
+        });
+      } else {
+        // Fallback: show manual guide
+        document.getElementById('pwa-android-section').style.display = 'none';
+        document.getElementById('pwa-ios-guide').style.display = 'block';
+        document.querySelector('#pwa-ios-guide .ios-step:first-child .ios-step-text').innerHTML =
+          'Appuyez sur le menu <strong>⋮</strong> en haut à droite de Chrome';
+        document.querySelectorAll('#pwa-ios-guide .ios-step')[1].querySelector('.ios-step-text').innerHTML =
+          'Sélectionnez <strong>"Ajouter à l\'écran d\'accueil"</strong> 📲';
+        document.querySelectorAll('#pwa-ios-guide .ios-step')[2].querySelector('.ios-step-text').innerHTML =
+          'Appuyez sur <strong>"Ajouter"</strong> pour confirmer ✅';
+      }
+    }
+
+    function closePWABanner() {
+      var banner = document.getElementById('pwa-install-banner');
+      if (banner) {
+        banner.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        banner.style.transform = 'translateY(120%)';
+        banner.style.opacity = '0';
+        setTimeout(function() { banner.style.display = 'none'; }, 320);
+      }
+      localStorage.setItem('ez_pwa_dismissed_v1', '1');
+    }
+
+    // Once installed as PWA, never show banner again
+    window.addEventListener('appinstalled', function() {
+      localStorage.setItem('ez_pwa_dismissed_v1', '1');
+      closePWABanner();
     });
   </script>
 
 </body>
 </html>
+
