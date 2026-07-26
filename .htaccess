@@ -15,9 +15,14 @@ DirectoryIndex index.html
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
 
-# Cache-Control
+# Cache-Control: Force fresh fetches for HTML & JS app shell, cache images
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|json)$">
-    Header set Cache-Control "max-age=2592000, public"
+  <FilesMatch "\.(html|js|json)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+  <FilesMatch "\.(css|png|jpg|jpeg|gif|ico|svg)$">
+    Header set Cache-Control "max-age=604800, public"
   </FilesMatch>
 </IfModule>
