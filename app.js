@@ -194,6 +194,7 @@ const state = {
   auditLogs: [],
   packs: [],
   companyInfo: JSON.parse(localStorage.getItem('nobti_company_info') || 'null') || {
+    logo: '',
     monogram: 'EZ',
     name: 'Ecom Zein OS',
     legalName: 'Ecom Zein Maroc S.A.R.L',
@@ -763,7 +764,7 @@ function renderLoginView() {
     <div style="min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F1F5F9 100%);">
       <div style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; width: 100%; max-width: 440px; padding: 2.25rem 2rem; box-shadow: 0 20px 40px -15px rgba(37,99,235,0.08), 0 10px 20px -5px rgba(0,0,0,0.04); animation: fadeSlideIn 0.25s ease-out;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 0.75rem auto; box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3);">EZ</div>
+          <img src="/logo.png" alt="EcomZein Logo" style="height: 60px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 0.75rem auto; display: block;">
           <h2 style="font-size: 1.35rem; font-weight: 800; color: #1F2937; letter-spacing: -0.01em;">Ecom Zein OS</h2>
           <p style="font-size: 0.82rem; color: #64748B; margin-top: 0.2rem;">Plateforme de Gestion & Execution Enterprise</p>
         </div>
@@ -1731,6 +1732,37 @@ function renderAdministrationView() {
             </button>
           </div>
 
+          <!-- Option Logo Personnalisé pour Devis -->
+          <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:12px; padding:1rem; margin-bottom:1rem;">
+            <label class="form-label" style="font-weight:800; color:#1E293B; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.3rem;">
+              <i data-lucide="image"></i> Logo de la Société (Affiché sur les Devis & Factures)
+            </label>
+            <p style="font-size:0.75rem; color:#64748B; margin-bottom:0.75rem; line-height:1.4;">
+              Ajoutez votre propre logo d'entreprise pour personnaliser l'entête des devis. <strong>Si aucun logo n'est chargé, le logo officiel E-comZein sera affiché par défaut.</strong>
+            </p>
+            
+            <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+              <div style="width:68px; height:68px; border-radius:10px; border:1px solid #E2E8F0; background:white; padding:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <img id="company-logo-preview" src="${state.companyInfo.logo || '/logo-mark.png'}" alt="Aperçu Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
+              </div>
+
+              <div style="flex:1; min-width:200px;">
+                <input type="file" id="company-logo-file" accept="image/*" onchange="handleCompanyLogoUpload(event)" style="font-size:0.8rem; margin-bottom:0.4rem; width:100%;">
+                <input type="hidden" id="company-logo-data" value="${state.companyInfo.logo || ''}">
+                <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                  <span id="company-logo-status" style="font-size:0.75rem; font-weight:700; color:${state.companyInfo.logo ? '#16A34A' : '#2563EB'};">
+                    ${state.companyInfo.logo ? '✓ Logo Société personnalisé actif' : '• Logo E-comZein (Par défaut)'}
+                  </span>
+                  ${state.companyInfo.logo ? `
+                    <button type="button" onclick="resetCompanyLogo()" style="background:none; border:none; color:#EF4444; font-size:0.72rem; font-weight:700; cursor:pointer; text-decoration:underline;">
+                      Réinitialiser au logo E-comZein
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
             <div>
               <label class="form-label">Nom Commercial (Devis & App)</label>
@@ -1807,7 +1839,7 @@ function renderAdministrationView() {
             <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:0.75rem; border-bottom:2px solid #2563EB;">
               <div>
                 <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                  <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center;">${state.companyInfo.monogram || 'EZ'}</div>
+                  <img src="${state.companyInfo.logo || '/logo-mark.png'}" alt="Logo" style="max-height:42px; max-width:140px; object-fit:contain; border-radius:6px; flex-shrink:0;">
                   <div style="font-size:1.2rem; font-weight:800; color:#1E293B;">${state.companyInfo.name || 'Ecom Zein OS'}</div>
                 </div>
                 <div style="font-size:0.72rem; font-weight:700; color:#2563EB; text-transform:uppercase;">${state.companyInfo.tagline}</div>
@@ -2219,8 +2251,8 @@ function openQuoteModal(quoteId) {
           <!-- Header: Logo & Legal Infos -->
           <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:0.85rem; border-bottom:2px solid #2563EB; margin-bottom:0.85rem;">
             <div>
-              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:white; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center;">${state.companyInfo.monogram || 'EZ'}</div>
+              <div style="display:flex; align-items:center; gap:0.55rem; margin-bottom:0.25rem;">
+                <img src="${state.companyInfo.logo || '/logo-mark.png'}" alt="Logo" style="max-height:48px; max-width:160px; object-fit:contain; border-radius:6px; flex-shrink:0;">
                 <div style="font-size:1.3rem; font-weight:800; color:#1E293B; letter-spacing:-0.02em;">${state.companyInfo.name || 'Ecom Zein OS'}</div>
               </div>
               <div style="font-size:0.75rem; font-weight:700; color:#2563EB; text-transform:uppercase; letter-spacing:0.04em;">${state.companyInfo.tagline || 'SYSTÈMES DE GESTION DE FILES D\'ATTENTE & DISPLAYS MÉDICAUX'}</div>
@@ -4232,6 +4264,7 @@ function saveCompanyInfo(e) {
   if (e) e.preventDefault();
 
   state.companyInfo = {
+    logo: (document.getElementById('company-logo-data')?.value || state.companyInfo.logo || '').trim(),
     monogram: (document.getElementById('company-monogram')?.value || 'EZ').trim(),
     name: (document.getElementById('company-name')?.value || 'Ecom Zein OS').trim(),
     legalName: (document.getElementById('company-legal-name')?.value || 'Ecom Zein Maroc S.A.R.L').trim(),
@@ -4247,8 +4280,49 @@ function saveCompanyInfo(e) {
   };
 
   saveStateToLocalStorage();
-  showToast('✅ Coordonnées Société, ICE, RC et RIB mis à jour avec succès !', 'success');
+  showToast('✅ Coordonnées et Logo de l\'entreprise mis à jour avec succès !', 'success');
   renderActiveView();
 }
+
+window.handleCompanyLogoUpload = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('❌ Le fichier logo est trop volumineux (Maximum: 2 Mo)', 'danger');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const previewImg = document.getElementById('company-logo-preview');
+    const logoInput = document.getElementById('company-logo-data');
+    if (previewImg) previewImg.src = dataUrl;
+    if (logoInput) logoInput.value = dataUrl;
+    const statusText = document.getElementById('company-logo-status');
+    if (statusText) {
+      statusText.textContent = '✓ Nouveau Logo Société chargé (Enregistrez pour valider)';
+      statusText.style.color = '#16A34A';
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.resetCompanyLogo = function() {
+  state.companyInfo.logo = '';
+  saveStateToLocalStorage();
+  const previewImg = document.getElementById('company-logo-preview');
+  const logoInput = document.getElementById('company-logo-data');
+  const fileInput = document.getElementById('company-logo-file');
+  if (logoInput) logoInput.value = '';
+  if (fileInput) fileInput.value = '';
+  if (previewImg) previewImg.src = '/logo-mark.png';
+  const statusText = document.getElementById('company-logo-status');
+  if (statusText) {
+    statusText.textContent = '• Logo E-comZein (Par défaut)';
+    statusText.style.color = '#2563EB';
+  }
+  showToast('Logo réinitialisé au logo E-comZein par défaut', 'info');
+  renderActiveView();
+};
 
 // initApp() at line 426 is the single entry point — no duplicate needed

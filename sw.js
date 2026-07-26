@@ -1,15 +1,20 @@
-// Ecom Zein OS — Service Worker v3
+// Ecom Zein OS — Service Worker v4
 // Strategy: Cache-first for app shell, Network-first for API
 
-const CACHE_VERSION = 'ecomzein-v3';
+const CACHE_VERSION = 'ecomzein-v4';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/app.js',
   '/styles.css',
   '/manifest.json',
+  '/logo.png',
+  '/logo-mark.png',
   '/icon-192.png',
   '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/favicon.png',
+  '/favicon.ico',
   '/sw.js'
 ];
 
