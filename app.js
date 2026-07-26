@@ -15,7 +15,7 @@ const EnterpriseIdentitySystem = {
     return state.currentUser;
   },
 
-  authenticate(email, password, selectedRole = 'owner') {
+  authenticate(email, password) {
     const roleNames = {
       owner: '👑 Super Admin / Direction',
       commercial: '📊 Commercial Senior',
@@ -34,24 +34,31 @@ const EnterpriseIdentitySystem = {
       }
     } else {
       const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
-      if (existingMember && existingMember.isLocked) {
+      if (!existingMember) {
+        showToast('⛔ Email non reconnu. Contactez votre administrateur.', 'error');
+        return false;
+      }
+      if (existingMember.isLocked) {
         showToast('⛔ Compte verrouillé. Contactez l\'administrateur.', 'error');
         return false;
       }
-      if (existingMember && existingMember.password && existingMember.password !== password) {
+      if (existingMember.password && existingMember.password !== password) {
         showToast('⛔ Mot de passe incorrect !', 'error');
         return false;
       }
     }
 
     const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
+    const assignedRole = cleanEmail === 'roya.creative@gmail.com' ? 'owner' : (existingMember ? (existingMember.roleKey || 'commercial') : 'commercial');
+    const assignedLabel = cleanEmail === 'roya.creative@gmail.com' ? '👑 Super Admin / Direction' : (existingMember ? (existingMember.role || roleNames[assignedRole]) : roleNames[assignedRole]);
+
     const user = {
       tenantId: this.tenantId,
       id: existingMember ? existingMember.id : 'USR-100',
       name: existingMember ? existingMember.name : (cleanEmail === 'roya.creative@gmail.com' ? 'Roya Creative' : cleanEmail.split('@')[0].toUpperCase()),
       email: cleanEmail,
-      role: selectedRole,
-      roleLabel: roleNames[selectedRole] || selectedRole,
+      role: assignedRole,
+      roleLabel: assignedLabel,
       emailVerified: true,
       mfaEnabled: false,
       lastLoginTime: new Date().toLocaleString(),
@@ -68,7 +75,7 @@ const EnterpriseIdentitySystem = {
 
     state.isAuthenticated = true;
     state.currentUser = user;
-    state.userRole = selectedRole;
+    state.userRole = assignedRole;
 
     localStorage.removeItem('nobti_logged_out');
     localStorage.setItem('nobti_auth_token', sessionToken.token);
@@ -719,8 +726,7 @@ function handleLoginFormSubmit(e) {
   e.preventDefault();
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
-  const role = document.getElementById('login-role').value;
-  EnterpriseIdentitySystem.authenticate(email, password, role);
+  EnterpriseIdentitySystem.authenticate(email, password);
 }
 
 function renderLoginView() {
@@ -739,20 +745,9 @@ function renderLoginView() {
             <input type="email" id="login-email" class="form-input" value="roya.creative@gmail.com" placeholder="nom@entreprise.com" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
           </div>
 
-          <div style="margin-bottom: 1.15rem;">
+          <div style="margin-bottom: 1.35rem;">
             <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Mot de passe *</label>
             <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
-          </div>
-
-          <div style="margin-bottom: 1.35rem;">
-            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Sélectionnez votre Rôle Métier</label>
-            <select id="login-role" class="form-input" style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; border-radius: 10px;">
-              <option value="owner" selected>👑 Super Admin / Direction (Accès Total)</option>
-              <option value="commercial">📊 Commercial Senior</option>
-              <option value="confirmation">✅ Agent Confirmation</option>
-              <option value="technician">🔧 Technicien Terrain</option>
-              <option value="finance">💰 Comptable / Finance</option>
-            </select>
           </div>
 
           <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 0.92rem; font-weight: 800; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
