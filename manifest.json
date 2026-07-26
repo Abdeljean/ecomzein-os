@@ -1,24 +1,74 @@
 {
-  "name": "Ecom Zein - OS Enterprise",
-  "short_name": "Ecom Zein",
-  "description": "Système d'exploitation ultra-rapide pour la gestion des ventes, commandes et interventions terrain.",
-  "start_url": "./index.html",
+  "name": "Ecom Zein OS — CRM Commercial",
+  "short_name": "EcomZein",
+  "description": "OS Commercial ultra-rapide : Ventes, Clients, Installations & Finances en temps réel.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#F8FAFC",
   "theme_color": "#2563EB",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's Work",
+      "short_name": "Today",
+      "description": "Voir les tâches du jour",
+      "url": "/?view=dashboard",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nouveau Prospect",
+      "short_name": "Prospect",
+      "description": "Ajouter un nouveau prospect",
+      "url": "/?view=sales&action=new-prospect",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ventes",
+      "short_name": "Ventes",
+      "description": "Gérer les ventes et commandes",
+      "url": "/?view=sales",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Installations",
+      "short_name": "Terrain",
+      "description": "Suivi des installations terrain",
+      "url": "/?view=operations",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

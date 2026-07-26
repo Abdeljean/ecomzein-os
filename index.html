@@ -2,18 +2,38 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#2563EB">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+  <!-- PWA / App Identity -->
+  <meta name="theme-color" content="#2563EB" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1E40AF" media="(prefers-color-scheme: dark)">
+  <meta name="application-name" content="EcomZein">
+  <meta name="description" content="Ecom Zein OS — CRM Commercial ultra-rapide : Ventes, Clients, Installations & Finances en temps réel.">
+  <title>Ecom Zein OS</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- iOS PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Ecom Zein - Système d'Exploitation Commercial & Opérationnel Épuré.">
-  <title>Ecom Zein</title>
+  <meta name="apple-mobile-web-app-title" content="EcomZein">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png">
 
-  <!-- PWA Manifest & Icons -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
-  <meta name="apple-mobile-web-app-title" content="Ecom Zein">
+  <!-- Android / General -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+  <link rel="shortcut icon" href="/icon-192.png">
+
+  <!-- Open Graph (share preview) -->
+  <meta property="og:title" content="Ecom Zein OS">
+  <meta property="og:description" content="OS Commercial ultra-rapide : Ventes, Clients, Installations & Finances.">
+  <meta property="og:image" content="/icon-512.png">
+  <meta property="og:type" content="website">
+
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

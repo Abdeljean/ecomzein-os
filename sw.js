@@ -1,63 +1,120 @@
-const CACHE_NAME = 'nobti-crm-v2';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap',
-  'https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.css'
+// Ecom Zein OS — Service Worker v3
+// Strategy: Cache-first for app shell, Network-first for API
+
+const CACHE_VERSION = 'ecomzein-v3';
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/app.js',
+  '/styles.css',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/sw.js'
 ];
 
+// ─── INSTALL: pre-cache app shell ─────────────────────────────────────────────
 self.addEventListener('install', (event) => {
+  console.log('[EcomZein SW v3] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Nobti PWA SW] Caching core app shell');
-      return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.warn('[Nobti PWA SW] Caching warning:', err);
+    caches.open(CACHE_VERSION).then((cache) => {
+      return cache.addAll(APP_SHELL).catch((err) => {
+        console.warn('[EcomZein SW] Pre-cache warning:', err);
       });
-    })
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
+// ─── ACTIVATE: clean old caches ───────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
+  console.log('[EcomZein SW v3] Activating...');
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[Nobti PWA SW] Removing old cache', key);
-            return caches.delete(key);
-          }
+        keys.filter(k => k !== CACHE_VERSION).map(k => {
+          console.log('[EcomZein SW] Deleting old cache:', k);
+          return caches.delete(k);
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// ─── FETCH: Stale-while-revalidate strategy ────────────────────────────────────
 self.addEventListener('fetch', (event) => {
-  // Navigation strategy: cache first, fallback to network
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached and asynchronously update cache in background
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+  const { request } = event;
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip browser extensions
+  if (!request.url.startsWith('http')) return;
+
+  // Skip backend API calls — always network
+  if (request.url.includes('/api/')) return;
+
+  // For HTML navigation — serve from cache, update in background
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('/index.html').then(cached => {
+        const networkFetch = fetch(request).then(response => {
+          if (response && response.status === 200) {
+            caches.open(CACHE_VERSION).then(c => c.put(request, response.clone()));
           }
-        }).catch(() => {/* Ignore network errors offline */});
-        return cachedResponse;
+          return response;
+        });
+        return cached || networkFetch;
+      })
+    );
+    return;
+  }
+
+  // For static assets — cache first, fallback network
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) {
+        // Stale-while-revalidate: return cache instantly, update in bg
+        fetch(request).then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            caches.open(CACHE_VERSION).then(c => c.put(request, response));
+          }
+        }).catch(() => {});
+        return cached;
       }
-      return fetch(event.request).catch(() => {
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html');
+      // Not in cache — fetch from network
+      return fetch(request).then(response => {
+        if (!response || response.status !== 200) return response;
+        const cloned = response.clone();
+        caches.open(CACHE_VERSION).then(c => c.put(request, cloned));
+        return response;
+      }).catch(() => {
+        // Offline fallback for HTML
+        if (request.headers.get('accept')?.includes('text/html')) {
+          return caches.match('/index.html');
         }
       });
     })
+  );
+});
+
+// ─── PUSH NOTIFICATIONS (future ready) ────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  const data = event.data.json();
+  self.registration.showNotification(data.title || 'Ecom Zein OS', {
+    body: data.body || 'Nouvelle notification',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'ecomzein-notif',
+    renotify: true,
+    vibrate: [200, 100, 200],
+    data: { url: data.url || '/' }
+  });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data?.url || '/')
   );
 });
