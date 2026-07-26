@@ -57,6 +57,7 @@ const EnterpriseIdentitySystem = {
     state.currentUser = user;
     state.userRole = selectedRole;
 
+    localStorage.removeItem('nobti_logged_out');
     localStorage.setItem('nobti_auth_token', sessionToken.token);
     localStorage.setItem('nobti_current_user', JSON.stringify(user));
     saveStateToLocalStorage();
@@ -96,6 +97,7 @@ const EnterpriseIdentitySystem = {
     }
     state.isAuthenticated = false;
     state.currentUser = null;
+    localStorage.setItem('nobti_logged_out', 'true');
     localStorage.removeItem('nobti_auth_token');
     localStorage.removeItem('nobti_current_user');
     systemLogger.log('EIS Auth', 'Déconnexion effectuée & jeton révoqué');
@@ -156,7 +158,7 @@ const state = {
   financeSubTab: 'invoices', // invoices | support
   adminSubTab: 'users', // users | permissions
 
-  isAuthenticated: localStorage.getItem('nobti_auth_token') ? true : true, // Default active session for seamless UX
+  isAuthenticated: localStorage.getItem('nobti_logged_out') === 'true' ? false : true, // Explicit session logout check
   currentUser: JSON.parse(localStorage.getItem('nobti_current_user') || 'null') || {
     id: 'USR-101',
     name: 'Youssef El Amrani',

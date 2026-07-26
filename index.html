@@ -1212,12 +1212,17 @@ body.drawer-open .fab-speed-dial {
             <option value="finance">💰 Comptable</option>
           </select>
         </div>
-        <div class="user-pill">
-          <div class="avatar">YE</div>
-          <div class="user-info">
-            <div class="user-name">Youssef El Amrani</div>
-            <div class="user-role" id="user-role-label">Chef des Ventes</div>
+        <div class="user-pill" style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <div class="avatar">YE</div>
+            <div class="user-info">
+              <div class="user-name">Youssef El Amrani</div>
+              <div class="user-role" id="user-role-label">Chef des Ventes</div>
+            </div>
           </div>
+          <button class="icon-btn" onclick="AuthManager.logout()" title="Déconnexion" style="color:#EF4444; background:#FEF2F2; border:1px solid #FCA5A5; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="log-out" style="width:15px; height:15px;"></i>
+          </button>
         </div>
       </div>
     </aside>
@@ -1239,7 +1244,7 @@ body.drawer-open .fab-speed-dial {
           </div>
         </div>
 
-        <div class="topbar-right">
+        <div class="topbar-right" style="display:flex; align-items:center; gap:0.5rem;">
           <button class="icon-btn" id="notification-btn" onclick="openNotificationsModal()" title="Notifications & Automatisations" style="position:relative; width:38px; height:38px; border-radius:50%; border:1px solid #CBD5E1; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center;">
             <i data-lucide="bell" style="width:18px; color:#334155;"></i>
             <span class="notification-dot" style="position:absolute; top:6px; right:6px; width:8px; height:8px; background:#EF4444; border-radius:50%; border:2px solid white;"></span>
@@ -1247,6 +1252,10 @@ body.drawer-open .fab-speed-dial {
           <button class="btn btn-primary btn-sm" onclick="openNewProspectModal();">
             <i data-lucide="plus"></i>
             <span>Nouveau Prospect</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="AuthManager.logout();" title="Déconnexion" style="background:#FEF2F2; color:#DC2626; border-color:#FCA5A5; font-weight:700;">
+            <i data-lucide="log-out" style="width:15px;"></i>
+            <span>Déconnexion</span>
           </button>
         </div>
       </header>
