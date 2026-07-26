@@ -652,22 +652,30 @@ function setupKeyboardShortcuts() {
 }
 
 function updateBadgeCounts() {
+  const salesCount = state.prospects.length;
+  const confCount = state.orders.filter(o => !o.status.includes('Confirmé')).length;
+  const opsCount = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
+  const unreadNotifs = state.notifications.filter(n => !n.read).length;
+
   const salesBadge = document.getElementById('badge-sales-count');
   const confBadge = document.getElementById('badge-conf-count');
   const opsBadge = document.getElementById('badge-ops-count');
-  const notifBadge = document.getElementById('notif-badge');
+  const notifDot = document.querySelector('.notification-dot');
 
-  if (salesBadge) salesBadge.textContent = state.prospects.length;
-  if (confBadge) confBadge.textContent = state.orders.filter(o => !o.status.includes('Confirmé')).length;
-  if (opsBadge) opsBadge.textContent = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
-
-  const unreadNotifs = state.notifications.filter(n => !n.read).length;
-  if (notifBadge) {
-    if (unreadNotifs > 0) {
-      notifBadge.style.display = 'block';
-    } else {
-      notifBadge.style.display = 'none';
-    }
+  if (salesBadge) {
+    salesBadge.textContent = salesCount;
+    salesBadge.style.display = salesCount > 0 ? 'inline-flex' : 'none';
+  }
+  if (confBadge) {
+    confBadge.textContent = confCount;
+    confBadge.style.display = confCount > 0 ? 'inline-flex' : 'none';
+  }
+  if (opsBadge) {
+    opsBadge.textContent = opsCount;
+    opsBadge.style.display = opsCount > 0 ? 'inline-flex' : 'none';
+  }
+  if (notifDot) {
+    notifDot.style.display = unreadNotifs > 0 ? 'block' : 'none';
   }
 }
 
