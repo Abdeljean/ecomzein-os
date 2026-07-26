@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Lucide Icons (async to not block render) -->
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 
   <!-- Embedded Design System CSS -->
   <style>
@@ -1288,7 +1288,63 @@ body.drawer-open .fab-speed-dial {
 
   </div>
 
-  <script src="/app.js"></script>
+  <!-- Full-Screen Loading Splash (visible instantly on mobile, hidden after app init) -->
+  <div id="app-loading-splash" style="
+    position: fixed; inset: 0; z-index: 99999;
+    background: #F8FAFC;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.25rem;
+    font-family: 'Inter', sans-serif;
+  ">
+    <div style="
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 900;
+      box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+    ">EZ</div>
+    <div style="text-align:center;">
+      <div style="font-size: 1.1rem; font-weight: 800; color: #1F2937;">Ecom Zein OS</div>
+      <div style="font-size: 0.78rem; color: #64748B; margin-top: 0.25rem;">Chargement en cours...</div>
+    </div>
+    <div style="
+      width: 40px; height: 4px; border-radius: 99px;
+      background: #E2E8F0; overflow: hidden;
+    ">
+      <div id="splash-bar" style="
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, #2563EB, #7C3AED);
+        border-radius: 99px;
+        transition: width 0.4s ease;
+        animation: splashLoad 1.8s ease-in-out forwards;
+      "></div>
+    </div>
+    <style>
+      @keyframes splashLoad {
+        0% { width: 0% }
+        60% { width: 80% }
+        100% { width: 100% }
+      }
+    </style>
+  </div>
+
+  <script src="/app.js" defer></script>
+  <script>
+    // Hide splash once DOM + app.js are ready
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var splash = document.getElementById('app-loading-splash');
+        if (splash) {
+          splash.style.transition = 'opacity 0.4s ease';
+          splash.style.opacity = '0';
+          setTimeout(function() { splash.style.display = 'none'; }, 420);
+        }
+      }, 300);
+    });
+  </script>
 
 </body>
 </html>
