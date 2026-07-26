@@ -2650,15 +2650,22 @@ const supplementsData = [
 ];
 
 function renderPacksView() {
+  const isSuperAdmin = state.userRole === 'owner' || state.currentUser?.role === 'owner';
+
   return `
     <div class="page-header">
       <div>
         <h1 class="page-title"><i data-lucide="package"></i> Packs & Supp</h1>
-        <p class="page-subtitle">Offres clés en main pour cabinets, cliniques et consommables optionnels.</p>
+        <p class="page-subtitle">Sélectionnez un pack, ajoutez des suppléments sur-mesure et composez un Devis Officiel pour votre client.</p>
       </div>
-      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="openNewPackModal();"><i data-lucide="plus"></i> + Nouveau Pack</button>
-        <button class="btn btn-success btn-sm" onclick="openNewSupplementModal();"><i data-lucide="plus-circle"></i> + Nouveau Supplément</button>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="openPackQuoteBuilder();">
+          <i data-lucide="file-plus"></i> 🎯 Composer un Devis sur Mesure
+        </button>
+        ${isSuperAdmin ? `
+          <button class="btn btn-secondary btn-sm" onclick="openNewPackModal();"><i data-lucide="plus"></i> + Nouveau Pack</button>
+          <button class="btn btn-success btn-sm" onclick="openNewSupplementModal();"><i data-lucide="plus-circle"></i> + Nouveau Supplément</button>
+        ` : ''}
       </div>
     </div>
 
@@ -2670,10 +2677,20 @@ function renderPacksView() {
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem;">
         ${packsData.map(p => `
-          <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; padding:0; overflow:hidden; border:1px solid #E2E8F0; transition:all 0.2s ease;">
+          <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; padding:0; overflow:hidden; border:1px solid #E2E8F0; transition:all 0.2s ease; position:relative;">
             <div style="height:180px; overflow:hidden; position:relative; background:#F8FAFC;">
               <img src="${p.image}" alt="${p.name}" style="width:100%; height:100%; object-fit:cover;">
               <span class="badge badge-blue" style="position:absolute; top:12px; left:12px; font-weight:700;">${p.category}</span>
+              ${isSuperAdmin ? `
+                <div style="position:absolute; top:12px; right:12px; display:flex; gap:0.35rem; z-index:5;">
+                  <button onclick="openEditPackModal('${p.id}')" title="Modifier le Pack (Super Admin)" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); border:1px solid #CBD5E1; color:#1E293B;">
+                    <i data-lucide="edit" style="width:13px; height:13px;"></i> Modifier
+                  </button>
+                  <button onclick="deletePack('${p.id}')" title="Supprimer le Pack (Super Admin)" class="btn btn-danger btn-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem; background:rgba(239,68,68,0.95); color:white;">
+                    <i data-lucide="trash-2" style="width:13px; height:13px;"></i>
+                  </button>
+                </div>
+              ` : ''}
             </div>
             
             <div style="padding:1.25rem; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -2704,8 +2721,8 @@ function renderPacksView() {
                 </ul>
               </div>
 
-              <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="createQuoteWithPack('${p.name}', ${p.priceTTC})">
-                <i data-lucide="file-plus"></i> Générer Devis avec ce Pack
+              <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="openPackQuoteBuilder('${p.id}')">
+                <i data-lucide="file-plus"></i> Choisir ce Pack & Composer Devis
               </button>
             </div>
           </div>
@@ -2721,9 +2738,19 @@ function renderPacksView() {
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem;">
         ${supplementsData.map(s => `
-          <div class="card" style="padding:0; overflow:hidden; border:1px solid #E2E8F0;">
-            <div style="height:140px; overflow:hidden; background:#F8FAFC;">
+          <div class="card" style="padding:0; overflow:hidden; border:1px solid #E2E8F0; position:relative;">
+            <div style="height:140px; overflow:hidden; background:#F8FAFC; position:relative;">
               <img src="${s.image}" alt="${s.name}" style="width:100%; height:100%; object-fit:cover;">
+              ${isSuperAdmin ? `
+                <div style="position:absolute; top:8px; right:8px; display:flex; gap:0.25rem; z-index:5;">
+                  <button onclick="openEditSupplementModal('${s.id}')" title="Modifier l'option (Super Admin)" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.45rem; font-size:0.72rem; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); border:1px solid #CBD5E1; color:#1E293B;">
+                    <i data-lucide="edit" style="width:12px; height:12px;"></i>
+                  </button>
+                  <button onclick="deleteSupplement('${s.id}')" title="Supprimer l'option (Super Admin)" class="btn btn-danger btn-sm" style="padding:0.2rem 0.45rem; font-size:0.72rem; background:rgba(239,68,68,0.95); color:white;">
+                    <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+                  </button>
+                </div>
+              ` : ''}
             </div>
             
             <div style="padding:1rem;">
@@ -2737,8 +2764,8 @@ function renderPacksView() {
 
               <p style="font-size:0.78rem; color:#64748B; margin-bottom:0.85rem; line-height:1.3;">${s.details}</p>
 
-              <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="addSupplementToQuote('${s.name}', ${s.priceTTC})">
-                <i data-lucide="shopping-cart"></i> + Ajouter au Devis
+              <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="openPackQuoteBuilder(null, '${s.id}')">
+                <i data-lucide="shopping-cart"></i> + Composer Devis avec cette Option
               </button>
             </div>
           </div>
@@ -2748,57 +2775,262 @@ function renderPacksView() {
   `;
 }
 
-function createQuoteWithPack(packName, totalTTC) {
+// ─── INTERACTIVE PACK & SUPPLEMENT QUOTE BUILDER ─────────────────────────────────────
+window.openPackQuoteBuilder = function(preselectedPackId, preselectedSuppId) {
+  const selectedPackId = preselectedPackId || packsData[0]?.id;
   const modal = document.getElementById('modal');
   const overlay = document.getElementById('modal-overlay');
-  const tva = Math.round(totalTTC * 0.20 / 1.20);
-  const ht = totalTTC - tva;
 
   modal.innerHTML = `
-    <div class="modal-header">
-      <h3><i data-lucide="file-plus"></i> Générer un Devis - ${packName}</h3>
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.15rem; font-weight:800; color:#1E293B;"><i data-lucide="calculator"></i> Composer un Devis Sur-Mesure (Pack + Options)</h3>
       <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
     </div>
-    <form onsubmit="savePackQuote(event, '${packName}', ${totalTTC}, ${ht}, ${tva})">
-      <div class="modal-body">
-        <label style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; display:block;">Client / Établissement *</label>
-        <select id="pq-client" class="form-input" required style="margin-bottom:0.75rem;">
-          ${state.prospects.map(p => `<option value="${p.clinic} (${p.name})">${p.clinic} - ${p.name}</option>`).join('')}
-        </select>
+    <form onsubmit="submitPackQuoteBuilder(event)">
+      <div class="modal-body" style="padding:1.1rem 1.25rem; max-height:75vh; overflow-y:auto;">
 
-        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.85rem; margin-bottom:1rem;">
-          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
-            <span>Sous-Total HT:</span><strong>${ht.toLocaleString()} MAD</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
-            <span>TVA (20%):</span><strong>${tva.toLocaleString()} MAD</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:800; color:#2563EB; border-top:1px solid #BFDBFE; padding-top:0.4rem;">
-            <span>Total TTC:</span><span>${totalTTC.toLocaleString()} MAD</span>
+        <!-- STEP 1: Pack Principal -->
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+          <label style="font-size:0.82rem; font-weight:800; color:#1E293B; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+            <span style="width:22px; height:22px; border-radius:50%; background:#2563EB; color:white; font-size:0.72rem; display:inline-flex; align-items:center; justify-content:center;">1</span>
+            Sélectionner le Pack Solution Principal
+          </label>
+
+          <select id="qb-pack-id" class="form-input" style="font-size:0.9rem; font-weight:700; color:#1E293B;" onchange="updatePackQuoteBuilderTotals()">
+            ${packsData.map(p => `
+              <option value="${p.id}" ${p.id === selectedPackId ? 'selected' : ''}>
+                ${p.name} — ${p.priceTTC.toLocaleString()} MAD TTC (${Math.round(p.priceHT).toLocaleString()} MAD HT)
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <!-- STEP 2: Suppléments & Optionnels -->
+        <div style="background:#FFFBEB; border:1px dashed #F59E0B; border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+          <label style="font-size:0.82rem; font-weight:800; color:#92400E; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem;">
+            <span style="width:22px; height:22px; border-radius:50%; background:#F59E0B; color:white; font-size:0.72rem; display:inline-flex; align-items:center; justify-content:center;">2</span>
+            Ajouter des Suppléments & Équipements Optionnels (Cocher / Décocher)
+          </label>
+
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            ${supplementsData.map(s => {
+              const isChecked = s.id === preselectedSuppId;
+              return `
+                <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #FEF3C7; padding:0.6rem 0.8rem; border-radius:8px;">
+                  <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; flex:1; margin:0;">
+                    <input type="checkbox" class="qb-supp-checkbox" data-supp-id="${s.id}" data-ht="${s.priceHT}" data-ttc="${s.priceTTC}" ${isChecked ? 'checked' : ''} onchange="updatePackQuoteBuilderTotals()">
+                    <div>
+                      <span style="font-size:0.85rem; font-weight:700; color:#1F2937; display:block;">${s.name}</span>
+                      <span style="font-size:0.72rem; color:#64748B;">Prix: ${s.priceTTC.toLocaleString()} MAD TTC (${Math.round(s.priceHT).toLocaleString()} MAD HT)</span>
+                    </div>
+                  </label>
+
+                  <div style="display:flex; align-items:center; gap:0.3rem; margin-left:0.5rem;">
+                    <span style="font-size:0.72rem; font-weight:600; color:#64748B;">Qté:</span>
+                    <input type="number" class="qb-supp-qty form-input" data-supp-id="${s.id}" value="1" min="1" max="50" style="width:55px; padding:0.2rem 0.4rem; font-size:0.8rem; text-align:center;" onchange="updatePackQuoteBuilderTotals()" onkeyup="updatePackQuoteBuilderTotals()">
+                  </div>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
+
+        <!-- STEP 3: Information Client / Destination -->
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+          <label style="font-size:0.82rem; font-weight:800; color:#1E293B; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem;">
+            <span style="width:22px; height:22px; border-radius:50%; background:#10B981; color:white; font-size:0.72rem; display:inline-flex; align-items:center; justify-content:center;">3</span>
+            Attribuer le Devis à un Client / Établissement
+          </label>
+
+          <div style="margin-bottom:0.75rem; display:flex; gap:1rem;">
+            <label style="font-size:0.8rem; font-weight:700; cursor:pointer;">
+              <input type="radio" name="qb-client-mode" value="existing" checked onchange="toggleQuoteBuilderClientMode('existing')"> Client Existants du Répertoire
+            </label>
+            <label style="font-size:0.8rem; font-weight:700; cursor:pointer;">
+              <input type="radio" name="qb-client-mode" value="new" onchange="toggleQuoteBuilderClientMode('new')"> + Nouveau Client / Prospect
+            </label>
+          </div>
+
+          <div id="qb-existing-client-box">
+            <select id="qb-existing-client-select" class="form-input" style="font-size:0.85rem;">
+              ${state.prospects.map(p => `
+                <option value="${p.clinic} — ${p.name}">${p.clinic} (Dr. ${p.name}) — ${p.city}</option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div id="qb-new-client-box" style="display:none; grid-template-columns:1fr 1fr; gap:0.6rem;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700;">Nom Médecin / Contact *</label>
+              <input type="text" id="qb-new-doc" class="form-input" placeholder="ex: Dr. Amine Bennani">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700;">Nom Établissement / Clinique *</label>
+              <input type="text" id="qb-new-clinic" class="form-input" placeholder="ex: Clinique Les Iris">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700;">Ville *</label>
+              <input type="text" id="qb-new-city" class="form-input" placeholder="ex: Casablanca">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700;">Téléphone *</label>
+              <input type="text" id="qb-new-phone" class="form-input" placeholder="ex: +212 661-001122">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Live Price Summary -->
+        <div style="background:#EFF6FF; border:1px solid #2563EB; border-radius:12px; padding:1rem;">
+          <div style="font-size:0.82rem; font-weight:800; color:#1E40AF; text-transform:uppercase; margin-bottom:0.6rem;">
+            📊 Calcul Financier en Direct
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem; color:#475569;">
+            <span>Sous-Total Pack HT:</span><strong id="qb-sum-pack-ht">0 MAD</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem; color:#475569;">
+            <span>Sous-Total Suppléments HT:</span><strong id="qb-sum-supp-ht">0 MAD</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem; color:#475569;">
+            <span>Total Hors Taxe (HT):</span><strong id="qb-sum-total-ht">0 MAD</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.5rem; color:#475569;">
+            <span>TVA (20%):</span><strong id="qb-sum-tva">0 MAD</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:900; color:#2563EB; border-top:2px solid #BFDBFE; padding-top:0.5rem;">
+            <span>TOTAL DEVIS TTC:</span><span id="qb-sum-total-ttc">0 MAD</span>
+          </div>
+        </div>
+
       </div>
-      <div class="modal-footer">
+
+      <div class="modal-footer" style="padding:0.85rem 1.25rem;">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-        <button type="submit" class="btn btn-primary">Créer et Envoyer le Devis</button>
+        <button type="submit" class="btn btn-primary" style="padding:0.7rem 1.2rem; font-weight:800;">
+          <i data-lucide="check-circle-2"></i> Valider & Générer le Devis PDF
+        </button>
       </div>
     </form>
   `;
-  overlay.classList.add('active');
-  lucide.createIcons();
-}
 
-function savePackQuote(e, packName, totalTTC, totalHT, tva) {
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+  updatePackQuoteBuilderTotals();
+};
+
+window.toggleQuoteBuilderClientMode = function(mode) {
+  const existingBox = document.getElementById('qb-existing-client-box');
+  const newBox = document.getElementById('qb-new-client-box');
+  if (mode === 'existing') {
+    if (existingBox) existingBox.style.display = 'block';
+    if (newBox) newBox.style.display = 'none';
+  } else {
+    if (existingBox) existingBox.style.display = 'none';
+    if (newBox) newBox.style.display = 'grid';
+  }
+};
+
+window.updatePackQuoteBuilderTotals = function() {
+  const packId = document.getElementById('qb-pack-id')?.value;
+  const pack = packsData.find(p => p.id === packId);
+
+  let packHT = pack ? pack.priceHT : 0;
+  let suppHT = 0;
+
+  const checkboxes = document.querySelectorAll('.qb-supp-checkbox');
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      const sId = cb.getAttribute('data-supp-id');
+      const htPrice = parseFloat(cb.getAttribute('data-ht')) || 0;
+      const qtyInput = document.querySelector(`.qb-supp-qty[data-supp-id="${sId}"]`);
+      const qty = parseInt(qtyInput?.value) || 1;
+      suppHT += htPrice * qty;
+    }
+  });
+
+  const totalHT = Math.round(packHT + suppHT);
+  const tva = Math.round(totalHT * 0.20);
+  const totalTTC = totalHT + tva;
+
+  if (document.getElementById('qb-sum-pack-ht')) document.getElementById('qb-sum-pack-ht').textContent = `${Math.round(packHT).toLocaleString()} MAD`;
+  if (document.getElementById('qb-sum-supp-ht')) document.getElementById('qb-sum-supp-ht').textContent = `${Math.round(suppHT).toLocaleString()} MAD`;
+  if (document.getElementById('qb-sum-total-ht')) document.getElementById('qb-sum-total-ht').textContent = `${totalHT.toLocaleString()} MAD`;
+  if (document.getElementById('qb-sum-tva')) document.getElementById('qb-sum-tva').textContent = `${tva.toLocaleString()} MAD`;
+  if (document.getElementById('qb-sum-total-ttc')) document.getElementById('qb-sum-total-ttc').textContent = `${totalTTC.toLocaleString()} MAD`;
+};
+
+window.submitPackQuoteBuilder = function(e) {
   e.preventDefault();
-  const clientVal = document.getElementById('pq-client').value;
-  const newId = `QT-2026-${90 + state.quotes.length}`;
+  const packId = document.getElementById('qb-pack-id')?.value;
+  const pack = packsData.find(p => p.id === packId);
+
+  const clientMode = document.querySelector('input[name="qb-client-mode"]:checked')?.value || 'existing';
+  let clientName = '';
+  let docName = '';
+
+  if (clientMode === 'existing') {
+    const existingVal = document.getElementById('qb-existing-client-select')?.value || '';
+    clientName = existingVal.split(' — ')[0] || existingVal;
+    docName = existingVal.split(' — ')[1] || 'Dr. Client';
+  } else {
+    docName = document.getElementById('qb-new-doc')?.value || 'Dr. Client';
+    clientName = document.getElementById('qb-new-clinic')?.value || 'Clinique Partenaire';
+    const city = document.getElementById('qb-new-city')?.value || 'Casablanca';
+    const phone = document.getElementById('qb-new-phone')?.value || '+212 600-000000';
+
+    const newProId = `PRO-10${state.prospects.length + 1}`;
+    state.prospects.unshift({
+      id: newProId,
+      name: docName,
+      clinic: clientName,
+      phone,
+      city,
+      pack: pack ? pack.name : 'Pack Personnalisé',
+      status: 'Devis Envoyé',
+      value: 0,
+      salesperson: state.currentUser?.name || 'Youssef El Amrani',
+      notes: 'Prospect créé via Composeur de Devis',
+      stepIndex: 2
+    });
+  }
+
+  const selectedSuppItems = [];
+  let suppHT = 0;
+
+  const checkboxes = document.querySelectorAll('.qb-supp-checkbox');
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      const sId = cb.getAttribute('data-supp-id');
+      const suppObj = supplementsData.find(s => s.id === sId);
+      const htPrice = parseFloat(cb.getAttribute('data-ht')) || 0;
+      const qtyInput = document.querySelector(`.qb-supp-qty[data-supp-id="${sId}"]`);
+      const qty = parseInt(qtyInput?.value) || 1;
+      suppHT += htPrice * qty;
+      if (suppObj) {
+        selectedSuppItems.push(`${qty}x ${suppObj.name}`);
+      }
+    }
+  });
+
+  const packHT = pack ? pack.priceHT : 0;
+  const totalHT = Math.round(packHT + suppHT);
+  const tva = Math.round(totalHT * 0.20);
+  const totalTTC = totalHT + tva;
+
+  const newQuoteId = `QT-2026-${90 + state.quotes.length}`;
+  const allLineItems = [
+    `Pack: ${pack ? pack.name : 'Pack sur-mesure'}`,
+    ...(pack ? pack.details : []),
+    ...selectedSuppItems
+  ];
 
   state.quotes.unshift({
-    id: newId,
-    client: clientVal.split(' (')[0],
-    doctor: clientVal.split('(')[1]?.replace(')', '') || 'Dr. Client',
-    pack: packName,
-    items: ['Composants Pack Inclus', 'Installation Terrain'],
+    id: newQuoteId,
+    client: clientName,
+    doctor: docName,
+    pack: pack ? pack.name : 'Pack Personnalisé',
+    items: allLineItems,
     totalHT,
     tva,
     totalTTC,
@@ -2808,11 +3040,196 @@ function savePackQuote(e, packName, totalTTC, totalHT, tva) {
 
   closeModal();
   saveStateToLocalStorage();
+
   state.activeView = 'sales';
   state.salesSubTab = 'quotes';
-  showToast(`Devis ${newId} créé avec succès pour ${clientVal} !`, 'success');
+  showToast(`Devis ${newQuoteId} de ${totalTTC.toLocaleString()} MAD généré avec succès pour ${clientName} !`, 'success');
   renderActiveView();
-}
+
+  setTimeout(() => {
+    openPrintableQuoteModal(newQuoteId);
+  }, 200);
+};
+
+// ─── SUPER ADMIN EDIT & DELETE HANDLERS FOR PACKS & SUPPLÉMENTS ─────────────────────
+window.openEditPackModal = function(packId) {
+  const p = packsData.find(x => x.id === packId);
+  if (!p) return;
+
+  tempUploadedPackImg = p.image;
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="edit"></i> Modifier le Pack Solution (${p.id})</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveEditPack(event, '${p.id}')">
+      <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Nom du Pack Solution *</label>
+          <input type="text" id="epk-name" class="form-input" value="${p.name}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Catégorie Cible *</label>
+          <input type="text" id="epk-cat" class="form-input" value="${p.category}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Prix HT (MAD) *</label>
+          <input type="number" id="epk-ht" class="form-input" value="${Math.round(p.priceHT)}" onkeyup="calcTTC('epk-ht', 'epk-ttc')" required>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Prix Total TTC (Auto +20% TVA)</label>
+          <input type="number" id="epk-ttc" class="form-input" value="${p.priceTTC}" readonly style="background:#F1F5F9; font-weight:700; color:#2563EB;">
+        </div>
+
+        <div style="grid-column: span 2; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:0.6rem;">
+          <label style="font-size:0.78rem; font-weight:700; color:#1F2937; display:block; margin-bottom:0.25rem;"><i data-lucide="upload" style="width:14px;"></i> Image d'Illustration</label>
+          <input type="file" id="epk-file" class="form-input" accept="image/*" style="padding:0.35rem; font-size:0.8rem; width:100%;" onchange="handleImageUpload(event, 'pack')">
+          <img id="apk-img-preview" src="${p.image}" style="max-height:75px; border-radius:6px; margin-top:0.4rem; border:1px solid #CBD5E1; object-fit:cover;">
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Détails & Matériel Inclus (séparés par des virgules)</label>
+          <textarea id="epk-det" class="form-input" rows="3" required>${p.details.join(', ')}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Enregistrer les Modifications</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.saveEditPack = function(e, packId) {
+  e.preventDefault();
+  const p = packsData.find(x => x.id === packId);
+  if (!p) return;
+
+  p.name = document.getElementById('epk-name').value;
+  p.category = document.getElementById('epk-cat').value;
+  p.priceHT = parseFloat(document.getElementById('epk-ht').value) || 0;
+  p.priceTTC = parseFloat(document.getElementById('epk-ttc').value) || Math.round(p.priceHT * 1.20);
+  p.image = tempUploadedPackImg || p.image;
+  const detailsRaw = document.getElementById('epk-det').value;
+  p.details = detailsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Pack "${p.name}" mis à jour avec succès !`, 'success');
+  renderActiveView();
+};
+
+window.deletePack = function(packId) {
+  const idx = packsData.findIndex(x => x.id === packId);
+  if (idx === -1) return;
+  const packName = packsData[idx].name;
+
+  if (confirm(`👑 Accès Super Admin: Êtes-vous sûr de vouloir supprimer définitivement le Pack "${packName}" ?`)) {
+    packsData.splice(idx, 1);
+    const stateIdx = state.packs.findIndex(x => x.id === packId);
+    if (stateIdx !== -1) state.packs.splice(stateIdx, 1);
+
+    saveStateToLocalStorage();
+    showToast(`Pack "${packName}" supprimé du catalogue.`, 'danger');
+    renderActiveView();
+  }
+};
+
+window.openEditSupplementModal = function(suppId) {
+  const s = supplementsData.find(x => x.id === suppId);
+  if (!s) return;
+
+  tempUploadedSuppImg = s.image;
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="edit"></i> Modifier l'Option / Supplément (${s.id})</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveEditSupplement(event, '${s.id}')">
+      <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; padding:1rem 1.25rem;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Désignation *</label>
+          <input type="text" id="esp-name" class="form-input" value="${s.name}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Catégorie *</label>
+          <input type="text" id="esp-cat" class="form-input" value="${s.category}" required>
+        </div>
+        <div>
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Prix HT (MAD) *</label>
+          <input type="number" id="esp-ht" class="form-input" value="${Math.round(s.priceHT)}" onkeyup="calcTTC('esp-ht', 'esp-ttc')" required>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Prix Total TTC (Auto +20% TVA)</label>
+          <input type="number" id="esp-ttc" class="form-input" value="${s.priceTTC}" readonly style="background:#F1F5F9; font-weight:700; color:#16A34A;">
+        </div>
+
+        <div style="grid-column: span 2; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:0.6rem;">
+          <label style="font-size:0.78rem; font-weight:700; color:#1F2937; display:block; margin-bottom:0.25rem;"><i data-lucide="upload" style="width:14px;"></i> Image d'Illustration</label>
+          <input type="file" id="esp-file" class="form-input" accept="image/*" style="padding:0.35rem; font-size:0.8rem; width:100%;" onchange="handleImageUpload(event, 'supp')">
+          <img id="asp-img-preview" src="${s.image}" style="max-height:75px; border-radius:6px; margin-top:0.4rem; border:1px solid #CBD5E1; object-fit:cover;">
+        </div>
+
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem; display:block;">Description & Spécifications</label>
+          <textarea id="esp-det" class="form-input" rows="2" required>${s.details}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.75rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-success"><i data-lucide="check"></i> Enregistrer l'Option</button>
+      </div>
+    </form>
+  `;
+
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  safeCreateIcons();
+};
+
+window.saveEditSupplement = function(e, suppId) {
+  e.preventDefault();
+  const s = supplementsData.find(x => x.id === suppId);
+  if (!s) return;
+
+  s.name = document.getElementById('esp-name').value;
+  s.category = document.getElementById('esp-cat').value;
+  s.priceHT = parseFloat(document.getElementById('esp-ht').value) || 0;
+  s.priceTTC = parseFloat(document.getElementById('esp-ttc').value) || Math.round(s.priceHT * 1.20);
+  s.image = tempUploadedSuppImg || s.image;
+  s.details = document.getElementById('esp-det').value;
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Option "${s.name}" mise à jour avec succès !`, 'success');
+  renderActiveView();
+};
+
+window.deleteSupplement = function(suppId) {
+  const idx = supplementsData.findIndex(x => x.id === suppId);
+  if (idx === -1) return;
+  const suppName = supplementsData[idx].name;
+
+  if (confirm(`👑 Accès Super Admin: Êtes-vous sûr de vouloir supprimer définitivement l'option "${suppName}" ?`)) {
+    supplementsData.splice(idx, 1);
+    const stateIdx = state.supplements.findIndex(x => x.id === suppId);
+    if (stateIdx !== -1) state.supplements.splice(stateIdx, 1);
+
+    saveStateToLocalStorage();
+    showToast(`Option "${suppName}" supprimée.`, 'danger');
+    renderActiveView();
+  }
+};
 
 function addSupplementToQuote(suppName, priceTTC) {
   showToast(`Option "${suppName}" (${priceTTC} MAD TTC) ajoutée au devis actif !`, 'success');
