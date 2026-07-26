@@ -683,6 +683,16 @@ function toggleSpeedDial() {
 function safeCreateIcons() {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     try { window.lucide.createIcons(); } catch (e) { console.warn('Lucide icons error', e); }
+  } else {
+    let retries = 0;
+    const interval = setInterval(() => {
+      retries++;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) {}
+        clearInterval(interval);
+      }
+      if (retries > 10) clearInterval(interval);
+    }, 150);
   }
 }
 

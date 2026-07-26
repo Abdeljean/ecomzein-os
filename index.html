@@ -1220,8 +1220,12 @@ body.drawer-open .fab-speed-dial {
               <div class="user-role" id="user-role-label">👑 Super Admin</div>
             </div>
           </div>
-          <button class="icon-btn" onclick="AuthManager.logout()" title="Déconnexion" style="color:#EF4444; background:#FEF2F2; border:1px solid #FCA5A5; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <i data-lucide="log-out" style="width:15px; height:15px;"></i>
+          <button class="icon-btn" onclick="AuthManager.logout()" title="Déconnexion" style="color:#EF4444; background:#FEF2F2; border:1px solid #FCA5A5; width:34px; height:34px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -1234,11 +1238,11 @@ body.drawer-open .fab-speed-dial {
       <header class="topbar">
         <div class="topbar-left">
           <button class="toggle-sidebar-btn" title="Menu">
-            <i data-lucide="menu"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
           </button>
 
           <div class="global-search-trigger" onclick="openGlobalSearch()">
-            <i data-lucide="search" style="width:16px;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <span>Rechercher un client, devis, commande...</span>
             <kbd class="search-shortcut">Ctrl K</kbd>
           </div>
@@ -1246,11 +1250,14 @@ body.drawer-open .fab-speed-dial {
 
         <div class="topbar-right" style="display:flex; align-items:center; gap:0.5rem;">
           <button class="icon-btn" id="notification-btn" onclick="openNotificationsModal()" title="Notifications & Automatisations" style="position:relative; width:38px; height:38px; border-radius:50%; border:1px solid #CBD5E1; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="bell" style="width:18px; color:#334155;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            </svg>
             <span class="notification-dot" style="position:absolute; top:6px; right:6px; width:8px; height:8px; background:#EF4444; border-radius:50%; border:2px solid white;"></span>
           </button>
           <button class="btn btn-primary btn-sm" onclick="openNewProspectModal();">
-            <i data-lucide="plus"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span>Nouveau Prospect</span>
           </button>
         </div>
