@@ -170,6 +170,10 @@ AuthManager.login = function(email, password, role) {
   return EnterpriseIdentitySystem.authenticate(email, password, role);
 };
 
+const storedUser = JSON.parse(localStorage.getItem('nobti_current_user') || 'null');
+const storedToken = localStorage.getItem('nobti_auth_token');
+const isLoggedOut = localStorage.getItem('nobti_logged_out') === 'true';
+
 // État Global de l'Application
 const state = {
   activeView: 'dashboard', // dashboard | sales | operations | finance | administration
@@ -178,15 +182,9 @@ const state = {
   financeSubTab: 'invoices', // invoices | support
   adminSubTab: 'users', // users | permissions
 
-  isAuthenticated: localStorage.getItem('nobti_logged_out') === 'true' ? false : true, // Explicit session logout check
-  currentUser: JSON.parse(localStorage.getItem('nobti_current_user') || 'null') || {
-    id: 'USR-100',
-    name: 'Roya Creative',
-    email: 'roya.creative@gmail.com',
-    role: 'owner',
-    roleLabel: '👑 Super Admin / Direction'
-  },
-  userRole: 'owner',
+  isAuthenticated: (!isLoggedOut && !!storedUser && !!storedToken),
+  currentUser: (!isLoggedOut && storedToken) ? storedUser : null,
+  userRole: (!isLoggedOut && storedUser) ? storedUser.role : 'owner',
   sidebarCollapsed: false,
   sidebarPinned: localStorage.getItem('nobti_sidebar_pinned') === 'true',
   mobileMenuOpen: false,
@@ -772,7 +770,7 @@ function renderLoginView() {
         <form onsubmit="handleLoginFormSubmit(event)">
           <div style="margin-bottom: 1rem;">
             <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.3rem;">Adresse Email Professionnelle *</label>
-            <input type="email" id="login-email" class="form-input" value="roya.creative@gmail.com" placeholder="nom@entreprise.com" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
+            <input type="email" id="login-email" class="form-input" value="" placeholder="roya.creative@gmail.com" required style="width: 100%; padding: 0.7rem 0.9rem; font-size: 0.9rem; border-radius: 10px;">
           </div>
 
           <div style="margin-bottom: 1.35rem;">

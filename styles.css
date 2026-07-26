@@ -153,26 +153,60 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar.collapsed .sidebar-header {
-  padding: 0;
-  justify-content: center;
-}
-
-.sidebar.collapsed .sidebar-header .toggle-sidebar-btn {
-  display: none;
+  padding: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .sidebar.collapsed .pin-sidebar-btn {
-  display: none;
+  display: none !important;
 }
 
 .sidebar.collapsed .brand-logo {
-  gap: 0;
-  margin: 0 auto;
+  gap: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.sidebar.collapsed .brand-logo img {
+  margin: 0 auto !important;
+}
+
+.sidebar.collapsed .sidebar-menu {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 0.5rem 0 !important;
 }
 
 .sidebar.collapsed .nav-item {
-  justify-content: center;
-  padding: 0.65rem 0;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  margin: 0.25rem auto !important;
+  border-radius: 12px !important;
+}
+
+.sidebar.collapsed .nav-item .icon {
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0.75rem 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
 }
 
 .sidebar.collapsed .user-pill {
@@ -187,11 +221,12 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center !important;
   align-items: center !important;
   margin: 0 auto !important;
+  gap: 0 !important;
 }
 
 .sidebar.collapsed .avatar {
   margin: 0 auto !important;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
 }
 
 .sidebar-header {

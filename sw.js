@@ -1,7 +1,7 @@
-// Ecom Zein OS — Service Worker v4
+// Ecom Zein OS — Service Worker v5
 // Strategy: Cache-first for app shell, Network-first for API
 
-const CACHE_VERSION = 'ecomzein-v4';
+const CACHE_VERSION = 'ecomzein-v5';
 const APP_SHELL = [
   '/',
   '/index.html',

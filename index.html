@@ -192,35 +192,87 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar.collapsed .nav-section-title,
 .sidebar.collapsed .nav-item span:not(.icon),
 .sidebar.collapsed .badge-count,
-.sidebar.collapsed .user-info {
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .role-switcher,
+.sidebar.collapsed #role-switcher-container,
+.sidebar.collapsed .logout-btn {
   display: none !important;
 }
 
 .sidebar.collapsed .sidebar-header {
-  padding: 0;
-  justify-content: center;
-}
-
-.sidebar.collapsed .sidebar-header .toggle-sidebar-btn {
-  display: none;
+  padding: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .sidebar.collapsed .pin-sidebar-btn {
-  display: none;
+  display: none !important;
 }
 
 .sidebar.collapsed .brand-logo {
-  gap: 0;
+  gap: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.sidebar.collapsed .brand-logo img {
+  margin: 0 auto !important;
+}
+
+.sidebar.collapsed .sidebar-menu {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 0.5rem 0 !important;
 }
 
 .sidebar.collapsed .nav-item {
-  justify-content: center;
-  padding: 0.65rem 0;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  margin: 0.25rem auto !important;
+  border-radius: 12px !important;
+}
+
+.sidebar.collapsed .nav-item .icon {
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0.75rem 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
 }
 
 .sidebar.collapsed .user-pill {
-  justify-content: center;
-  padding: 0.4rem 0;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0.5rem 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+.sidebar.collapsed .user-pill > div {
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+  gap: 0 !important;
+}
+
+.sidebar.collapsed .avatar {
+  margin: 0 auto !important;
 }
 
 .sidebar-header {
@@ -1333,15 +1385,14 @@ body.drawer-open .fab-speed-dial {
     gap: 1.25rem;
     font-family: 'Inter', sans-serif;
   ">
-    <div style="
-      width: 56px; height: 56px;
+    <img src="/logo-mark.png" alt="EcomZein Logo" style="
+      width: 64px; height: 64px;
+      object-fit: contain;
       border-radius: 14px;
-      background: linear-gradient(135deg, #2563EB, #7C3AED);
-      color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 900;
-      box-shadow: 0 8px 24px rgba(37,99,235,0.3);
-    ">EZ</div>
+      background: white;
+      padding: 4px;
+      box-shadow: 0 8px 24px rgba(2,132,199,0.25);
+    ">
     <div style="text-align:center;">
       <div style="font-size: 1.1rem; font-weight: 800; color: #1F2937;">Ecom Zein OS</div>
       <div style="font-size: 0.78rem; color: #64748B; margin-top: 0.25rem;">Chargement en cours...</div>
@@ -1352,7 +1403,7 @@ body.drawer-open .fab-speed-dial {
     ">
       <div id="splash-bar" style="
         height: 100%; width: 0%;
-        background: linear-gradient(90deg, #2563EB, #7C3AED);
+        background: linear-gradient(90deg, #00C9A7, #0284C7, #1E40AF);
         border-radius: 99px;
         transition: width 0.4s ease;
         animation: splashLoad 2s ease-in-out forwards;
