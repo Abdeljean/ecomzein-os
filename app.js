@@ -725,10 +725,10 @@ function handleLoginFormSubmit(e) {
 
 function renderLoginView() {
   return `
-    <div style="min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);">
-      <div style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; width: 100%; max-width: 440px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); animation: fadeSlideIn 0.25s ease-out;">
+    <div style="min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F1F5F9 100%);">
+      <div style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; width: 100%; max-width: 440px; padding: 2.25rem 2rem; box-shadow: 0 20px 40px -15px rgba(37,99,235,0.08), 0 10px 20px -5px rgba(0,0,0,0.04); animation: fadeSlideIn 0.25s ease-out;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #2563EB, #7C3AED); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 0.75rem auto; box-shadow: 0 10px 20px -5px rgba(37,99,235,0.4);">EZ</div>
+          <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 0.75rem auto; box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3);">EZ</div>
           <h2 style="font-size: 1.35rem; font-weight: 800; color: #1F2937; letter-spacing: -0.01em;">Ecom Zein OS</h2>
           <p style="font-size: 0.82rem; color: #64748B; margin-top: 0.2rem;">Plateforme de Gestion & Execution Enterprise</p>
         </div>
