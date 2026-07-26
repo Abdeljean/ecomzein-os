@@ -1,12 +1,4 @@
-# DO NOT REMOVE OR MODIFY. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home/u721391917/domains/tassnimproduct.shop/public_html"
-PassengerBaseURI "/"
-PassengerNodejs "/nodevenv/domains/tassnimproduct.shop/public_html/20/bin/node"
-PassengerAppType node
-PassengerStartupFile server.js
-# DO NOT REMOVE OR MODIFY. CLOUDLINUX PASSENGER CONFIGURATION END
-
-# SPA Fallback & Static Assets
+# Ecom Zein OS - Direct SPA Routing Configuration for Hostinger
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -16,7 +8,7 @@ PassengerStartupFile server.js
   RewriteRule . /index.html [L]
 </IfModule>
 
-# Gzip Compression
+# Enable Deflate Compression
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
