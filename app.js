@@ -529,19 +529,15 @@ function togglePinSidebar(e) {
       sidebar.classList.add('pinned');
       sidebar.classList.remove('collapsed');
       state.sidebarCollapsed = false;
-      showToast('📌 Menu fixé', 'info');
     } else {
       sidebar.classList.remove('pinned');
       sidebar.classList.add('collapsed');
       state.sidebarCollapsed = true;
-      showToast('« Menu auto-fermeture', 'info');
     }
   }
-  // Rotate chevron: pointing left = pinned (click to close), pointing right = collapsed (click to open)
   if (pinBtn) {
     pinBtn.style.transform = state.sidebarPinned ? 'rotate(0deg)' : 'rotate(180deg)';
   }
-  lucide.createIcons();
 }
 
 function setupPWA() {
