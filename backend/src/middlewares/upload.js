@@ -26,7 +26,24 @@ const storage = multer.diskStorage({
   }
 });
 
+const allowedMimeTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf'
+];
+
+const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+
 export const uploadMiddleware = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Format de fichier non sécurisé. Seuls les documents PDF et images (JPG, PNG, WEBP) sont autorisés.'), false);
+    }
+  }
 });

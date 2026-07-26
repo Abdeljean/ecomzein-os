@@ -40,8 +40,9 @@ app.use(helmet({
 // CORS Policy
 app.use(cors(config.cors));
 
-// Body Parser
-app.use(express.json());
+// Body Parser with strict payload limits (DoS Protection)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Versioned API Routes (/api/v1/)
 app.use('/api/v1', apiRoutes);
