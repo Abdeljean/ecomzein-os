@@ -170,7 +170,30 @@ AuthManager.login = function(email, password, role) {
   return EnterpriseIdentitySystem.authenticate(email, password, role);
 };
 
-const storedUser = JSON.parse(localStorage.getItem('nobti_current_user') || 'null');
+// Safe JSON Parser helper for LocalStorage resilience
+function safeJsonParse(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    console.warn(`[Storage Safety] Corrupted item '${key}' cleared:`, e);
+    try { localStorage.removeItem(key); } catch (err) {}
+    return fallback;
+  }
+}
+
+// XSS Sanitization Helper for safe innerHTML rendering
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const storedUser = safeJsonParse('nobti_current_user', null);
 const storedToken = localStorage.getItem('nobti_auth_token');
 const isLoggedOut = localStorage.getItem('nobti_logged_out') === 'true';
 
@@ -191,7 +214,7 @@ const state = {
   pwaInstallPrompt: null,
   auditLogs: [],
   packs: [],
-  companyInfo: JSON.parse(localStorage.getItem('nobti_company_info') || 'null') || {
+  companyInfo: safeJsonParse('nobti_company_info', null) || {
     logo: '',
     monogram: 'EZ',
     name: 'Ecom Zein OS',

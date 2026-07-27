@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { config } from './config/index.js';
 import apiRoutes from './routes/index.js';
@@ -39,6 +40,9 @@ app.use(helmet({
 
 // CORS Policy
 app.use(cors(config.cors));
+
+// Cookie Parser Middleware for HttpOnly Auth Tokens
+app.use(cookieParser());
 
 // Body Parser with strict payload limits (DoS Protection)
 app.use(express.json({ limit: '10mb' }));

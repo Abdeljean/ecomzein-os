@@ -12,13 +12,13 @@ export async function login(req, res) {
   // Single admin default mock user fallback for MVP seed if DB empty
   let user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
   
-  if (!user && email.toLowerCase() === 'youssef@ecomzein.ma') {
+  if (!user && email.toLowerCase() === 'roya.creative@gmail.com') {
     const hash = await bcrypt.hash(password, 10);
     user = await prisma.user.create({
       data: {
-        email: 'youssef@ecomzein.ma',
+        email: 'roya.creative@gmail.com',
         passwordHash: hash,
-        name: 'Youssef El Amrani',
+        name: 'Roya Creative',
         role: 'owner'
       }
     });
