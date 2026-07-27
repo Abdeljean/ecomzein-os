@@ -1,0 +1,40 @@
+name: 🚀 Deploy E-comZein OS to Hostinger Production
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  web-deploy:
+    name: 🌐 Sync Files to Hostinger Web Cloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Check out repository code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Generate Prisma Client
+        run: |
+          npm ci || npm install
+          npx prisma generate
+
+      - name: 🚀 FTP Deploy to Hostinger public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER || '145.79.20.73' }}
+          username: ${{ secrets.FTP_USERNAME || 'u721391917' }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tmp/**
+            **/storage/uploads/**
+            ecomzein_*.zip
