@@ -1572,19 +1572,23 @@ body.drawer-open .fab-speed-dial {
 
   <script src="/app.js?v=2.0" defer></script>
   <script>
-    // ─── SPLASH HIDE ───────────────────────────────────────────
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        var splash = document.getElementById('app-loading-splash');
-        if (splash) {
-          splash.style.transition = 'opacity 0.45s ease';
-          splash.style.opacity = '0';
-          setTimeout(function() { splash.style.display = 'none'; }, 460);
-        }
-        // Show PWA install banner after splash hides
-        setTimeout(showPWAInstallBanner, 1800);
-      }, 400);
-    });
+    // ─── SPLASH HIDE (OPTIMIZED FOR MOBILE LCP/FCP) ────────────
+    function hideSplashScreen() {
+      var splash = document.getElementById('app-loading-splash');
+      if (splash && splash.style.display !== 'none') {
+        splash.style.transition = 'opacity 0.2s ease';
+        splash.style.opacity = '0';
+        setTimeout(function() { splash.style.display = 'none'; }, 220);
+        setTimeout(showPWAInstallBanner, 1000);
+      }
+    }
+
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      hideSplashScreen();
+    } else {
+      document.addEventListener('DOMContentLoaded', hideSplashScreen);
+      window.addEventListener('load', hideSplashScreen);
+    }
 
     // ─── PWA INSTALL BANNER LOGIC ──────────────────────────────
     var _pwaPrompt = null;
