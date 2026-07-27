@@ -1,11 +1,37 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import path from 'path';
 import { config } from './config/index.js';
 import apiRoutes from './routes/index.js';
 import { globalErrorHandler } from './middlewares/errorHandler.js';
+
+// Resilient cookie parser (falls back to native JS cookie parsing if module not found in environment)
+let cookieParserMiddleware;
+try {
+  const cookieParserModule = await import('cookie-parser');
+  cookieParserMiddleware = (cookieParserModule.default || cookieParserModule)();
+} catch (e) {
+  cookieParserMiddleware = (req, res, next) => {
+    req.cookies = req.cookies || {};
+    const cookieHeader = req.headers?.cookie;
+    if (cookieHeader) {
+      cookieHeader.split(';').forEach(cookie => {
+        const parts = cookie.split('=');
+        const name = parts.shift()?.trim();
+        const value = parts.join('=')?.trim();
+        if (name) {
+          try {
+            req.cookies[name] = decodeURIComponent(value || '');
+          } catch (_) {
+            req.cookies[name] = value;
+          }
+        }
+      });
+    }
+    next();
+  };
+}
 
 const app = express();
 app.disable('x-powered-by');
@@ -43,7 +69,7 @@ app.use(helmet({
 app.use(cors(config.cors));
 
 // Cookie Parser Middleware for HttpOnly Auth Tokens
-app.use(cookieParser());
+app.use(cookieParserMiddleware);
 
 // Body Parser with strict payload limits (DoS Protection)
 app.use(express.json({ limit: '10mb' }));
