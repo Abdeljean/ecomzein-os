@@ -59,6 +59,13 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Image Aspect Ratio & CLS Prevention Rules */
+img {
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: attr(width) / attr(height);
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--text-main);

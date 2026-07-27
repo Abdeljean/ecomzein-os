@@ -8,6 +8,7 @@ import apiRoutes from './routes/index.js';
 import { globalErrorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
+app.disable('x-powered-by');
 
 const rootDir = process.cwd();
 
