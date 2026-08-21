@@ -3,6 +3,8 @@
  * Interface ultra-simplifiée, claire et intuitive avec 4 sections principales.
  */
 
+var _lucideTimer = null;
+
 // Enterprise Identity System (EIS) — Multi-Tenant SaaS Authentication & Security Engine
 const EnterpriseIdentitySystem = {
   tenantId: 'TENANT-ZEIN-MAROC',
@@ -638,7 +640,6 @@ function toggleSpeedDial() {
   if (fab) fab.classList.toggle('active');
 }
 
-let _lucideTimer = null;
 function safeCreateIcons() {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     if (_lucideTimer) { clearInterval(_lucideTimer); _lucideTimer = null; }
@@ -803,6 +804,7 @@ function renderDashboardView() {
   const totalValue = state.prospects.reduce((sum, p) => sum + (Number(p.value) || 0), 0);
   const pendingCalls = state.prospects.filter(p => p.status === 'À Contacter' || p.status === 'Qualifié').length;
   const pendingConfirmations = state.orders.filter(o => o.status && o.status.includes('Attente')).length;
+  const pendingOrders = pendingConfirmations;
   const overduePayments = state.payments.filter(p => p.balanceRemaining > 0).length;
   const todayInstallations = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
 
@@ -908,9 +910,9 @@ function renderDashboardView() {
       <div class="card" style="border-left:4px solid #16A34A; padding:1rem; cursor:pointer;" onclick="switchView('finance');">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-weight:700; font-size:0.85rem; color:#16A34A;"><i data-lucide="credit-card" style="width:15px; height:15px; color:#16A34A;"></i> Finances</span>
-          <span class="badge badge-success-green">91.2%</span>
+          <span class="badge badge-success-green">${state.payments.length > 0 ? '100%' : '0%'}</span>
         </div>
-        <div class="kpi-value" style="font-size:1.6rem; font-weight:800; color:#16A34A; margin:0.25rem 0;">86 400 <span style="font-size:0.75rem; font-weight:600;">MAD restant</span></div>
+        <div class="kpi-value" style="font-size:1.6rem; font-weight:800; color:#16A34A; margin:0.25rem 0;">${state.payments.reduce((s, p) => s + (p.balanceRemaining || 0), 0).toLocaleString()} <span style="font-size:0.75rem; font-weight:600;">MAD restant</span></div>
       </div>
 
       <!-- Commissions -->
@@ -919,7 +921,7 @@ function renderDashboardView() {
           <span style="font-weight:700; font-size:0.85rem; color:#64748B;"><i data-lucide="users" style="width:15px; height:15px; color:#7C3AED;"></i> Commerciales</span>
           <span class="badge" style="background:#F5F3FF; color:#7C3AED; font-weight:700;">${state.salespeople.length} Vendeurs</span>
         </div>
-        <div class="kpi-value" style="font-size:1.6rem; font-weight:800; color:#7C3AED; margin:0.25rem 0;">18 460 <span style="font-size:0.75rem; font-weight:600;">MAD Commissions</span></div>
+        <div class="kpi-value" style="font-size:1.6rem; font-weight:800; color:#7C3AED; margin:0.25rem 0;">${state.commissionDeals.reduce((s, c) => s + (c.commissionAmount || 0), 0).toLocaleString()} <span style="font-size:0.75rem; font-weight:600;">MAD</span></div>
       </div>
     </div>
 
@@ -927,36 +929,29 @@ function renderDashboardView() {
     <div class="card" style="padding:1rem;">
       <div style="font-size:0.82rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.65rem;">⚡ Prochaines actions</div>
       <div style="display:flex; flex-direction:column; gap:0.5rem;">
-        <div class="task-action-row" onclick="switchView('sales'); openProspectDrawer('PRO-1002');">
-          <div style="display:flex; align-items:center; gap:0.65rem;">
-            <div class="task-action-icon" style="background:#FEF2F2;"><span>🔥</span></div>
-            <div>
-              <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">Relance Devis — Radiologie Anoual</div>
-              <div style="font-size:0.72rem; color:#64748B;">Dr. Fatima Zahra • QT-2026-88 • 57 600 MAD</div>
+        ${state.prospects.length === 0 && state.orders.length === 0 ? `
+          <div style="text-align:center; padding:1.5rem; color:#64748B; font-size:0.85rem;">
+            ✨ Base propre et prête ! Vous pouvez importer vos données en 1 clic.
+            <div style="margin-top:0.6rem;">
+              <button class="btn btn-primary btn-sm" onclick="openGoogleSheetsImportModal();">
+                <i data-lucide="file-spreadsheet"></i> 📋 Importer Google Sheets
+              </button>
             </div>
           </div>
-          <i data-lucide="chevron-right" class="task-action-chevron" style="width:16px; height:16px;"></i>
-        </div>
-        <div class="task-action-row" onclick="switchView('operations');">
-          <div style="display:flex; align-items:center; gap:0.65rem;">
-            <div class="task-action-icon" style="background:#FFFBEB;"><span>📦</span></div>
-            <div>
-              <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">Confirmation Acompte — Al Mansour</div>
-              <div style="font-size:0.72rem; color:#64748B;">ORD-8822 • 29 400 MAD en attente</div>
+        ` : `
+          ${state.prospects.slice(0, 3).map(p => `
+            <div class="task-action-row" onclick="switchView('sales'); openProspectDrawer('${p.id}');">
+              <div style="display:flex; align-items:center; gap:0.65rem;">
+                <div class="task-action-icon" style="background:#EFF6FF;"><span>📞</span></div>
+                <div>
+                  <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">${p.clinic}</div>
+                  <div style="font-size:0.72rem; color:#64748B;">${p.name} • ${p.city} • ${p.value.toLocaleString()} MAD</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="task-action-chevron" style="width:16px; height:16px;"></i>
             </div>
-          </div>
-          <i data-lucide="chevron-right" class="task-action-chevron" style="width:16px; height:16px;"></i>
-        </div>
-        <div class="task-action-row" onclick="switchView('clients');">
-          <div style="display:flex; align-items:center; gap:0.65rem;">
-            <div class="task-action-icon" style="background:#F0FDF4;"><span>📞</span></div>
-            <div>
-              <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">Rappel Client — Cabinet Majorelle</div>
-              <div style="font-size:0.72rem; color:#64748B;">Dr. Hind Berrada • Pack Smart TV • Lundi</div>
-            </div>
-          </div>
-          <i data-lucide="chevron-right" class="task-action-chevron" style="width:16px; height:16px;"></i>
-        </div>
+          `).join('')}
+        `}
       </div>
     </div>
   `;
