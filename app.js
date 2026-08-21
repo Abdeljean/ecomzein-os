@@ -15,7 +15,7 @@ const EnterpriseIdentitySystem = {
     return state.currentUser;
   },
 
-  authenticate(email, password) {
+  async authenticate(email, password) {
     const roleNames = {
       owner: '👑 Super Admin / Direction',
       commercial: '📊 Commercial Senior',
@@ -26,101 +26,71 @@ const EnterpriseIdentitySystem = {
 
     const cleanEmail = (email || '').trim().toLowerCase();
 
-    // Password validation for Production Super Admin
-    if (cleanEmail === 'roya.creative@gmail.com') {
-      if (password !== 'Jb462920@.' && password !== '462920@.') {
-        showToast('⛔ Mot de passe incorrect !', 'error');
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.accessToken) {
+        showToast(data.error || '⛔ Identifiants incorrects !', 'error');
         return false;
       }
-    } else {
-      const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
-      if (!existingMember) {
-        showToast('⛔ Email non reconnu. Contactez votre administrateur.', 'error');
-        return false;
-      }
-      if (existingMember.isLocked) {
-        showToast('⛔ Compte verrouillé. Contactez l\'administrateur.', 'error');
-        return false;
-      }
-      if (existingMember.password && existingMember.password !== password) {
-        showToast('⛔ Mot de passe incorrect !', 'error');
-        return false;
-      }
+
+      const assignedRole = data.user.role || 'commercial';
+      const assignedLabel = roleNames[assignedRole] || 'Utilisateur';
+
+      const user = {
+        tenantId: this.tenantId,
+        id: data.user.id || 'USR-100',
+        name: data.user.name || cleanEmail.split('@')[0].toUpperCase(),
+        email: cleanEmail,
+        role: assignedRole,
+        roleLabel: assignedLabel,
+        emailVerified: true,
+        lastLoginTime: new Date().toLocaleString(),
+        currentSessionId: `SESS-${Date.now()}`
+      };
+
+      state.isAuthenticated = true;
+      state.currentUser = user;
+      state.userRole = assignedRole;
+
+      localStorage.removeItem('nobti_logged_out');
+      localStorage.setItem('nobti_auth_token', data.accessToken);
+      localStorage.setItem('nobti_current_user', JSON.stringify(user));
+      saveStateToLocalStorage();
+
+      systemLogger.log('EIS Auth', `Connexion backend vérifiée pour ${user.email} (${user.roleLabel})`);
+      showToast(`Bienvenue ${user.name} ! Connexion réussie.`, 'success');
+      renderActiveView();
+      return true;
+    } catch (e) {
+      showToast('⛔ Impossible de joindre le serveur d\'authentification.', 'error');
+      return false;
     }
-
-    const existingMember = state.teamMembers.find(m => m.email.toLowerCase() === cleanEmail);
-    const assignedRole = cleanEmail === 'roya.creative@gmail.com' ? 'owner' : (existingMember ? (existingMember.roleKey || 'commercial') : 'commercial');
-    const assignedLabel = cleanEmail === 'roya.creative@gmail.com' ? '👑 Super Admin / Direction' : (existingMember ? (existingMember.role || roleNames[assignedRole]) : roleNames[assignedRole]);
-
-    const user = {
-      tenantId: this.tenantId,
-      id: existingMember ? existingMember.id : 'USR-100',
-      name: existingMember ? existingMember.name : (cleanEmail === 'roya.creative@gmail.com' ? 'Roya Creative' : cleanEmail.split('@')[0].toUpperCase()),
-      email: cleanEmail,
-      role: assignedRole,
-      roleLabel: assignedLabel,
-      emailVerified: true,
-      mfaEnabled: false,
-      lastLoginTime: new Date().toLocaleString(),
-      lastLoginIp: '192.168.1.202 (Casablanca, MA)',
-      currentSessionId: `SESS-${Date.now()}`
-    };
-
-    // Create session token with 24h expiration
-    const sessionToken = {
-      token: `JWT_EIS_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      expiresAt: Date.now() + (24 * 60 * 60 * 1000),
-      user: user
-    };
-
-    state.isAuthenticated = true;
-    state.currentUser = user;
-    state.userRole = assignedRole;
-
-    localStorage.removeItem('nobti_logged_out');
-    localStorage.setItem('nobti_auth_token', sessionToken.token);
-    localStorage.setItem('nobti_current_user', JSON.stringify(user));
-    saveStateToLocalStorage();
-
-    // Security Audit Log Entry
-    state.auditLogs.unshift({
-      id: `AUD-AUTH-${Math.floor(1000 + Math.random() * 9000)}`,
-      timestamp: new Date().toLocaleString(),
-      user: user.name,
-      role: user.roleLabel,
-      action: 'EIS_AUTHENTICATION_SUCCESS',
-      entity: 'TenantSession',
-      entityId: this.tenantId,
-      oldValue: 'Non Authentifié',
-      newValue: `Session Active (${user.lastLoginIp})`
-    });
-
-    systemLogger.log('EIS Auth', `Connexion réussie pour ${user.email} (${user.roleLabel})`);
-    showToast(`Bienvenue ${user.name} ! Connexion réussie.`, 'success');
-    renderActiveView();
-    return true;
   },
 
-  logout() {
-    if (state.currentUser) {
-      state.auditLogs.unshift({
-        id: `AUD-AUTH-${Math.floor(1000 + Math.random() * 9000)}`,
-        timestamp: new Date().toLocaleString(),
-        user: state.currentUser.name,
-        role: state.currentUser.roleLabel,
-        action: 'EIS_LOGOUT_SUCCESS',
-        entity: 'TenantSession',
-        entityId: this.tenantId,
-        oldValue: 'Session Active',
-        newValue: 'Déconnecté'
-      });
-    }
+  async logout() {
+    try {
+      const token = localStorage.getItem('nobti_auth_token');
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      }).catch(() => {});
+    } catch (e) {}
+
     state.isAuthenticated = false;
     state.currentUser = null;
     localStorage.setItem('nobti_logged_out', 'true');
     localStorage.removeItem('nobti_auth_token');
     localStorage.removeItem('nobti_current_user');
-    systemLogger.log('EIS Auth', 'Déconnexion effectuée & jeton révoqué');
+    systemLogger.log('EIS Auth', 'Déconnexion effectuée & session révoquée');
     showToast('Session fermée en toute sécurité.', 'info');
     renderActiveView();
   },
@@ -3799,7 +3769,18 @@ function toggleLockUserAccount(userId) {
 
 // 6. Envoyer le lien de réinitialisation de mot de passe
 function sendPasswordResetEmail(email) {
-  showToast(`🔑 Lien de réinitialisation de mot de passe envoyé à ${email} !`, 'success');
+  fetch('/api/v1/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  })
+  .then(res => res.json())
+  .then(data => {
+    showToast(data.message || `📩 Instructions envoyées à ${email}`, 'info');
+  })
+  .catch(() => {
+    showToast(`📩 Instructions envoyées à ${email}`, 'info');
+  });
 }
 
 /* ==========================================================================
