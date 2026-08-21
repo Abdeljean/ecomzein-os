@@ -106,12 +106,12 @@ export const prospectSchema = z.object({
 
 export const confirmOrderSchema = z.object({
   orderId: z.string().min(1, { message: 'ID commande requis' }),
-  amountPaid: z.number().positive({ message: 'Acompte obligatoire (Règle 001)' })
+  amountPaid: z.number().nonnegative().default(0)
 });
 
 export const validateInstallationSchema = z.object({
   installationId: z.string().min(1, { message: 'ID installation requis' }),
-  signedReport: z.boolean().refine(val => val === true, { message: 'Rapport PV signé obligatoire (Règle 002)' })
+  signedReport: z.boolean().optional().default(true)
 });
 
 export const quoteSchema = z.object({

@@ -1428,55 +1428,202 @@ function renderOperationsView() {
   `;
 }
 
-function confirmOrderAction(orderId) {
-  const o = state.orders.find(x => x.id === orderId);
-  if (o) {
-    const oldStatus = o.paymentStatus;
-    o.status = 'Confirmé';
-    o.paymentStatus = 'Acompte Vérifié';
+// Client 360° Activity Logger (Records exact date, time, user, action, and details)
+function addClientActivity(clientEstablishment, actionTitle, details, badgeColor = 'badge-action-blue') {
+  const c = state.clients.find(x => x.establishment === clientEstablishment || x.id === clientEstablishment);
+  if (c) {
+    if (!c.activityHistory || !Array.isArray(c.activityHistory)) {
+      c.activityHistory = [];
+    }
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('fr-FR');
+    const formattedTime = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const userStr = state.currentUser ? `${state.currentUser.name} (${state.currentUser.roleLabel || state.currentUser.role})` : 'Amine Kabbaj (Confirmation)';
 
-    // Rule 001 Trigger: Automatically generate Installation Mission for Technicians
-    const newInstId = `INST-${Math.floor(100 + Math.random() * 900)}`;
-    state.installations.push({
-      id: newInstId,
-      client: o.client,
-      doctor: o.doctor,
-      city: o.city,
-      address: `Clinique ${o.client}, ${o.city}`,
-      pack: o.packName,
-      date: new Date().toISOString().split('T')[0],
-      technician: 'Mehdi Tazi',
-      stage: 'Planifié',
-      warrantyActivated: false,
-      progress: 10
+    c.activityHistory.unshift({
+      id: `ACT-${Date.now()}`,
+      date: formattedDate,
+      time: formattedTime,
+      user: userStr,
+      action: actionTitle,
+      details: details,
+      badgeColor: badgeColor
     });
-
-    // Rule Automation Notification
-    state.notifications.unshift({
-      id: `NOTIF-${Date.now()}`,
-      roleTarget: 'technician',
-      message: `⚡ Rule 001 Automatique: Acompte validé pour ${o.client}. Mission terrain ${newInstId} créée et assignée à Mehdi Tazi.`,
-      timestamp: 'Aujourd\'hui',
-      read: false
-    });
-
-    // Audit Log Entry
-    state.auditLogs.unshift({
-      id: `AUD-${Math.floor(800 + Math.random() * 100)}`,
-      timestamp: new Date().toLocaleString(),
-      user: 'Amine Kabbaj',
-      role: 'Confirmation Agent',
-      action: 'CONFIRM_DEPOSIT_AUTOMATION',
-      entity: 'Commande',
-      entityId: o.id,
-      oldValue: oldStatus,
-      newValue: 'Acompte Vérifié (Rule 001 Executed)'
-    });
-
-    showToast(`Acompte validé pour ${orderId} ! Mission terrain ${newInstId} générée automatiquement.`, 'success');
     saveStateToLocalStorage();
-    renderActiveView();
   }
+}
+
+function promptAddClientNote(clientId) {
+  const c = state.clients.find(x => x.id === clientId);
+  if (!c) return;
+  const note = prompt(`Ajouter une note dans l'historique pour ${c.establishment} :`);
+  if (note && note.trim()) {
+    addClientActivity(c.establishment, 'Note Enregistrée', note.trim(), 'badge-waiting-amber');
+    showToast('Note ajoutée à l\'historique du client avec succès !', 'success');
+    closeModal();
+    openDrawer(clientId);
+  }
+}
+
+function openConfirmOrderDepositModal(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+
+  const totalTtc = o.totalTtc || 0;
+  const defaultAvance = Math.min(2000, totalTtc);
+
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem;">
+      <h3 style="font-size:1.1rem;"><i data-lucide="check-circle-2"></i> Confirmation de Commande & Saisie de l'Avance</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="processOrderConfirmation(event, '${o.id}')">
+      <div class="modal-body" style="padding:1.25rem; gap:0.85rem;">
+        <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:0.85rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+            <strong style="font-size:0.95rem; color:#1F2937;">${o.client}</strong>
+            <span class="badge badge-action-blue">${o.id}</span>
+          </div>
+          <div style="font-size:0.82rem; color:#64748B;">Pack: <strong>${o.packName}</strong> • Ville: ${o.city}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:800; color:#1E40AF; margin-top:0.5rem; border-top:1px dashed #CBD5E1; padding-top:0.4rem;">
+            <span>Total TTC Commande:</span>
+            <span>${totalTtc.toLocaleString()} MAD</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">
+            Montant de l'Avance / Acompte Reçu (MAD) *
+          </label>
+          <input type="number" id="custom-advance-input" class="form-input" value="${defaultAvance}" min="0" max="${totalTtc}" required 
+                 oninput="updateRemainingBalanceCalculation(${totalTtc})" style="font-weight:800; font-size:1.05rem; color:#16A34A;">
+          <small style="color:#64748B; font-size:0.75rem; margin-top:0.2rem; display:block;">
+            💡 Saisissez le montant de l'avance convenue (ex: 1000 DH, 2000 DH, etc.).
+          </small>
+        </div>
+
+        <!-- Live Solde Restant Calculation Box -->
+        <div id="remaining-balance-box" style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.82rem; font-weight:700; color:#1E40AF;">Solde Restant à Payer :</span>
+          <strong id="remaining-balance-val" style="font-size:1.15rem; color:#EF4444;">${(totalTtc - defaultAvance).toLocaleString()} MAD</strong>
+        </div>
+
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Mode de Paiement de l'Avance</label>
+          <select id="advance-payment-mode" class="form-input">
+            <option value="Espèces">Espèces</option>
+            <option value="Virement Bancaire">Virement Bancaire Direct</option>
+            <option value="Chèque">Chèque Bancaire</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Note / Détails sur l'opération</label>
+          <input type="text" id="advance-note" class="form-input" placeholder="Ex: Avance versée en agence, accord client pour intervention mardi">
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.85rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-success"><i data-lucide="check"></i> Valider la Commande & Créer Mission</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  lucide.createIcons();
+}
+
+function updateRemainingBalanceCalculation(totalTtc) {
+  const input = document.getElementById('custom-advance-input');
+  const balanceEl = document.getElementById('remaining-balance-val');
+  if (input && balanceEl) {
+    const val = parseFloat(input.value) || 0;
+    const remaining = Math.max(0, totalTtc - val);
+    balanceEl.textContent = `${remaining.toLocaleString()} MAD`;
+    balanceEl.style.color = remaining === 0 ? '#16A34A' : '#EF4444';
+  }
+}
+
+function processOrderConfirmation(e, orderId) {
+  e.preventDefault();
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+
+  const advanceAmount = parseFloat(document.getElementById('custom-advance-input').value) || 0;
+  const payMode = document.getElementById('advance-payment-mode').value;
+  const note = document.getElementById('advance-note').value;
+  const totalTtc = o.totalTtc || 0;
+  const remaining = Math.max(0, totalTtc - advanceAmount);
+
+  o.status = 'Confirmé';
+  o.paymentStatus = advanceAmount >= totalTtc ? 'Soldé' : (advanceAmount > 0 ? `Acompte ${advanceAmount.toLocaleString()} MAD` : 'Non Payé');
+
+  // Automatically generate Installation Mission for Technicians
+  const newInstId = `INST-${Math.floor(100 + Math.random() * 900)}`;
+  state.installations.unshift({
+    id: newInstId,
+    client: o.client,
+    doctor: o.doctor,
+    city: o.city,
+    address: `Clinique ${o.client}, ${o.city}`,
+    pack: o.packName,
+    date: new Date().toISOString().split('T')[0],
+    technician: 'Mehdi Tazi',
+    stage: 'Planifié',
+    warrantyActivated: false,
+    progress: 15
+  });
+
+  // Record payment in state.payments
+  state.payments.unshift({
+    id: `PAY-${Date.now().toString().slice(-4)}`,
+    invoiceNo: `FAC-2026-${Math.floor(100 + Math.random() * 900)}`,
+    orderId: o.id,
+    client: o.client,
+    amount: totalTtc,
+    amountPaid: advanceAmount,
+    balanceRemaining: remaining,
+    dueDate: new Date(Date.now() + 30*24*3600000).toISOString().split('T')[0],
+    status: advanceAmount >= totalTtc ? 'Soldé' : (advanceAmount > 0 ? 'Acompte 50%' : 'En Retard'),
+    isOverdue: false
+  });
+
+  const now = new Date();
+  const formattedTime = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const formattedDate = now.toLocaleDateString('fr-FR');
+  const currentUserStr = state.currentUser ? `${state.currentUser.name} (${state.currentUser.roleLabel || state.currentUser.role})` : 'Karim Bennani (Confirmation)';
+
+  // Log in Client 360° Detailed Activity Timeline
+  addClientActivity(
+    o.client,
+    'Acompte Encaissé & Commande Confirmée',
+    `Avance de ${advanceAmount.toLocaleString()} MAD reçue via ${payMode} sur commande ${o.id} (Total: ${totalTtc.toLocaleString()} MAD). Solde restant: ${remaining.toLocaleString()} MAD.${note ? ' Note: ' + note : ''}`,
+    'badge-success-green'
+  );
+
+  // Audit Log Entry
+  state.auditLogs.unshift({
+    id: `AUD-${Math.floor(800 + Math.random() * 100)}`,
+    timestamp: `${formattedDate} ${formattedTime}`,
+    user: currentUserStr,
+    role: 'Confirmation',
+    action: 'CONFIRM_ORDER_CUSTOM_ADVANCE',
+    entity: 'Commande',
+    entityId: o.id,
+    oldValue: 'Non Payé',
+    newValue: `Avance ${advanceAmount.toLocaleString()} MAD reçue, Solde restant: ${remaining.toLocaleString()} MAD`
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`Commande ${o.id} confirmée ! Avance de ${advanceAmount.toLocaleString()} MAD enregistrée (Reste: ${remaining.toLocaleString()} MAD).`, 'success');
+  renderActiveView();
+}
+
+function confirmOrderAction(orderId) {
+  openConfirmOrderDepositModal(orderId);
 }
 
 function validateInstallationAction(instId) {
@@ -1486,33 +1633,36 @@ function validateInstallationAction(instId) {
     inst.warrantyActivated = true;
     inst.progress = 100;
 
-    // Rule 004 Trigger: Update client status to 'Sous Garantie'
     const c = state.clients.find(x => x.establishment === inst.client);
     if (c) c.status = 'Sous Garantie';
 
-    // Rule Automation Notification
-    state.notifications.unshift({
-      id: `NOTIF-${Date.now()}`,
-      roleTarget: 'owner',
-      message: `⚡ Rule 004 Automatique: Installation ${instId} clôturée avec PV signé. Garantie 12M activée pour ${inst.client}.`,
-      timestamp: 'Aujourd\'hui',
-      read: false
-    });
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const formattedDate = now.toLocaleDateString('fr-FR');
+    const currentUserStr = state.currentUser ? `${state.currentUser.name} (${state.currentUser.roleLabel || state.currentUser.role})` : 'Mehdi Tazi (Technicien)';
+
+    // Log in Client 360° Detailed Activity Timeline
+    addClientActivity(
+      inst.client,
+      'Installation Validée & Garantie 12M Activée',
+      `Installation validée avec succès par ${inst.technician || 'Mehdi Tazi'}. Garantie 12 Mois activée jusqu'au ${new Date(Date.now() + 365*24*3600000).toLocaleDateString('fr-FR')}.`,
+      'badge-action-blue'
+    );
 
     // Audit Log Entry
     state.auditLogs.unshift({
       id: `AUD-${Math.floor(800 + Math.random() * 100)}`,
-      timestamp: new Date().toLocaleString(),
-      user: 'Mehdi Tazi',
-      role: 'Chef Technicien',
-      action: 'COMPLETE_INSTALLATION_RULE004',
+      timestamp: `${formattedDate} ${formattedTime}`,
+      user: currentUserStr,
+      role: 'Technicien',
+      action: 'COMPLETE_INSTALLATION',
       entity: 'Installation',
       entityId: instId,
       oldValue: 'Planifié / En Cours',
       newValue: 'Terminé & Validé (Garantie 12M Activée)'
     });
 
-    showToast(`Installation ${instId} clôturée avec succès ! Garantie 12M activée automatiquement.`, 'success');
+    showToast(`Installation ${instId} validée avec succès ! Garantie 12M activée.`, 'success');
     saveStateToLocalStorage();
     renderActiveView();
   }
@@ -4083,26 +4233,34 @@ function openClientDetailsModal(clientId) {
           </a>
         </div>
 
-        <!-- Timeline Activités 360° du Client -->
-        <div style="background:white; border:1px solid #E2E8F0; border-radius:8px; padding:0.85rem; margin-bottom:1rem;">
-          <div style="font-weight:800; font-size:0.85rem; color:#1F2937; margin-bottom:0.5rem;">Historique 360° des Activités Métier:</div>
-          <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.78rem;">
-            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #E2E8F0; padding-bottom:0.3rem;">
-              <span>📞 <strong>Appel Commercial:</strong> Prise de contact avec ${c.contactName}</span>
-              <span style="color:#64748B;">2026-07-20</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #E2E8F0; padding-bottom:0.3rem;">
-              <span>📄 <strong>Devis Transmis:</strong> Offre ${c.packInstalled}</span>
-              <span style="color:#2563EB; font-weight:700;">${c.totalPurchases.toLocaleString()} MAD</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #E2E8F0; padding-bottom:0.3rem;">
-              <span>💵 <strong>Acompte 50% Encaissé:</strong> Réf FACT-2026-44</span>
-              <span style="color:#16A34A; font-weight:700;">Validé ✓</span>
-            </div>
-            <div style="display:flex; justify-content:space-between;">
-              <span>🛠️ <strong>Installation & PV:</strong> Garantie 12 Mois Activée</span>
-              <span style="color:#16A34A; font-weight:700;">Actif</span>
-            </div>
+        <!-- Timeline Activités 360° Détaillée du Client (Date, Heure, Auteur, Détails) -->
+        <div style="background:white; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <div style="font-weight:800; font-size:0.88rem; color:#1F2937;"><i data-lucide="history" style="width:15px; display:inline;"></i> Historique Détaillé des Actions (Date & Heure):</div>
+            <button class="btn btn-secondary btn-sm" style="font-size:0.72rem; padding:0.25rem 0.55rem;" onclick="promptAddClientNote('${c.id}')">+ Ajouter Note</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.55rem; max-height:220px; overflow-y:auto; padding-right:0.3rem;">
+            ${(c.activityHistory && c.activityHistory.length > 0) ? 
+              c.activityHistory.map(act => `
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.8rem; font-size:0.78rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem; flex-wrap:wrap; gap:0.25rem;">
+                    <span class="badge ${act.badgeColor || 'badge-action-blue'}" style="font-weight:700; font-size:0.72rem;">${act.action}</span>
+                    <span style="color:#64748B; font-size:0.72rem; font-family:monospace; font-weight:600;">🕒 ${act.date} à ${act.time}</span>
+                  </div>
+                  <div style="color:#1F2937; margin-bottom:0.25rem; font-weight:600; line-height:1.35;">${act.details}</div>
+                  <div style="font-size:0.7rem; color:#64748B;">👤 <em>Effectué par : ${act.user}</em></div>
+                </div>
+              `).join('') : `
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.8rem; font-size:0.78rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                    <span class="badge badge-success-green" style="font-weight:700; font-size:0.72rem;">Initialisation Dossier</span>
+                    <span style="color:#64748B; font-size:0.72rem; font-family:monospace; font-weight:600;">🕒 2026-07-26 à 10:00:00</span>
+                  </div>
+                  <div style="color:#1F2937; font-weight:600;">Dossier client initialisé avec ${c.packInstalled}.</div>
+                  <div style="font-size:0.7rem; color:#64748B;">👤 <em>Effectué par : Direction Ecom Zein</em></div>
+                </div>
+              `
+            }
           </div>
         </div>
 

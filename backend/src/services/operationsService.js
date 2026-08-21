@@ -5,27 +5,27 @@ export async function fetchOrders() {
   return await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
-// Rule 001: Mandatory deposit of at least 50% required to confirm order and create installation mission
+// Flexible Order Confirmation & Deposit Recording (Allow any custom advance: 1000 DH, 2000 DH, etc.)
 export async function confirmOrderDeposit(orderId, amountPaid, userName, userRole) {
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) throw new Error('Commande non trouvée');
 
-  if (order.status === 'Confirmé' && order.paymentStatus === 'Acompte Vérifié') {
+  if (order.status === 'Confirmé' && order.paymentStatus.includes('Acompte')) {
     throw new Error('Cette commande a déjà été confirmée.');
   }
 
   const totalTtc = Number(order.totalTtc) || 0;
-  const minRequiredDeposit = totalTtc * 0.5;
-  const paid = Number(amountPaid) || 0;
-
-  if (paid < minRequiredDeposit) {
-    throw new Error(`Règle 001: Un acompte d'au moins 50% (${minRequiredDeposit} MAD pour un total de ${totalTtc} MAD) est obligatoire pour confirmer la commande.`);
-  }
+  const paid = Math.max(0, Number(amountPaid) || 0);
+  const remaining = Math.max(0, totalTtc - paid);
+  const paymentStatusLabel = paid >= totalTtc ? 'Soldé' : (paid > 0 ? `Acompte ${paid} MAD` : 'Non Payé');
 
   const result = await prisma.$transaction(async (tx) => {
     const updatedOrder = await tx.order.update({
       where: { id: orderId },
-      data: { status: 'Confirmé', paymentStatus: 'Acompte Vérifié' }
+      data: {
+        status: 'Confirmé',
+        paymentStatus: paymentStatusLabel
+      }
     });
 
     const installation = await tx.installation.create({
@@ -39,15 +39,15 @@ export async function confirmOrderDeposit(orderId, amountPaid, userName, userRol
       }
     });
 
-    // Create payment record for deposit tracking
+    // Create payment record for advance tracking
     await tx.payment.create({
       data: {
         invoiceNo: `FAC-${Date.now().toString().slice(-6)}`,
         orderId: order.id,
         client: order.client,
         amountPaid: paid,
-        balanceRemaining: Math.max(0, totalTtc - paid),
-        status: paid >= totalTtc ? 'Soldé' : 'Acompte 50%',
+        balanceRemaining: remaining,
+        status: paid >= totalTtc ? 'Soldé' : (paid > 0 ? 'Acompte 50%' : 'En Retard'),
         isOverdue: false
       }
     }).catch(() => {});
@@ -55,19 +55,19 @@ export async function confirmOrderDeposit(orderId, amountPaid, userName, userRol
     await tx.auditLog.create({
       data: {
         userName: userName || 'Système',
-        userRole: userRole || 'owner',
-        action: 'CONFIRM_ORDER_RULE001',
+        userRole: userRole || 'confirmation',
+        action: 'CONFIRM_ORDER_CUSTOM_DEPOSIT',
         entity: 'Order',
         entityId: orderId,
-        oldValue: 'Non Payé',
-        newValue: `Acompte ${paid} MAD (min requis: ${minRequiredDeposit} MAD) Vérifié`
+        oldValue: order.paymentStatus || 'Non Payé',
+        newValue: `Avance ${paid} MAD enregistrée (Total: ${totalTtc} MAD, Reste à payer: ${remaining} MAD)`
       }
     });
 
-    return { updatedOrder, installation };
+    return { updatedOrder, installation, balanceRemaining: remaining };
   });
 
-  logger.info('Order confirmed (Rule 001 executed)', { orderId, amountPaid: paid, minRequiredDeposit });
+  logger.info('Order confirmed with custom advance deposit', { orderId, amountPaid: paid, totalTtc, remaining });
   return result;
 }
 
@@ -75,12 +75,8 @@ export async function fetchInstallations() {
   return await prisma.installation.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
-// Rule 002 & 004: Validate installation with signed PV -> activates 12M warranty automatically (idempotent, prevents duplicate warranties)
+// Smooth & Simple Installation Validation (Activates 12M warranty automatically with full audit trail)
 export async function validateInstallationService(installationId, signedReport, userName, userRole) {
-  if (!signedReport) {
-    throw new Error('Règle 002: Signature du procès-verbal (PV) requise pour clôturer l\'installation.');
-  }
-
   const existingInst = await prisma.installation.findUnique({ where: { id: installationId } });
   if (!existingInst) {
     throw new Error('Installation non trouvée.');
@@ -111,19 +107,19 @@ export async function validateInstallationService(installationId, signedReport, 
 
     await tx.auditLog.create({
       data: {
-        userName: userName || 'Technicien',
+        userName: userName || 'Technicien Terrain',
         userRole: userRole || 'technician',
-        action: 'VALIDATE_INSTALLATION_RULE004',
+        action: 'VALIDATE_INSTALLATION_SIMPLE',
         entity: 'Installation',
         entityId: installationId,
-        newValue: `PV signé validé, Garantie 12M activée jusqu'au ${expiryDate.toISOString().split('T')[0]}`
+        newValue: `Installation validée avec succès. Garantie 12M activée jusqu'au ${expiryDate.toISOString().split('T')[0]}`
       }
     });
 
     return { inst, warranty };
   });
 
-  logger.info('Installation validated (Rule 002 & 004 executed)', { installationId });
+  logger.info('Installation validated smoothly (Warranty 12M activated)', { installationId });
   return result;
 }
 

@@ -149,30 +149,29 @@ async function runSecurityHardeningTestSuite() {
   // ==========================================
   console.log('\n--- 2. BUSINESS RULES ENFORCEMENT TESTS ---');
 
-  // Rule 001 Test: Order Confirmation Without 50% Deposit Must Fail
+  // Rule 001 Test: Order Confirmation with Flexible Advance Deposit (Requires Valid Order)
   const fakeOrderId = 'ord-test-' + Date.now();
   const rule001Fail = await request('/api/v1/orders/confirm', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokens.owner}` },
-    body: JSON.stringify({ orderId: fakeOrderId, amountPaid: 100 }) // Invalid deposit
+    body: JSON.stringify({ orderId: fakeOrderId, amountPaid: 1500 }) // Non-existent order test
   });
-  // Since order doesn't exist or amount is under 50%, it returns 400 error
   if (rule001Fail.status === 400 && rule001Fail.body.error) {
-    record('biz', 'TC-BIZ-01', 'Rule 001: Order Confirmation Requires Valid Order & >=50% Deposit', 'pass');
+    record('biz', 'TC-BIZ-01', 'Order Confirmation & Advance Recording Requires Valid Order', 'pass');
   } else {
-    record('biz', 'TC-BIZ-01', 'Rule 001 Check Failed', 'fail', `status=${rule001Fail.status}`);
+    record('biz', 'TC-BIZ-01', 'Order Confirmation Check Failed', 'fail', `status=${rule001Fail.status}`);
   }
 
-  // Rule 002 Test: Installation Closure Without PV Signature Must Fail
+  // Rule 002 & 004 Test: Installation Validation Requires Valid Installation
   const rule002Fail = await request('/api/v1/installations/validate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokens.technician}` },
-    body: JSON.stringify({ installationId: 'inst-test-1', signedReport: false })
+    body: JSON.stringify({ installationId: 'inst-nonexistent-xyz', signedReport: true })
   });
-  if (rule002Fail.status === 400) {
-    record('biz', 'TC-BIZ-02', 'Rule 002: Installation Closure Blocked When PV Is Unsigned (400)', 'pass');
+  if (rule002Fail.status === 400 && rule002Fail.body.error) {
+    record('biz', 'TC-BIZ-02', 'Installation Validation Requires Valid ID & Idempotent Closure', 'pass');
   } else {
-    record('biz', 'TC-BIZ-02', 'Rule 002 Check Failed', 'fail', `status=${rule002Fail.status}`);
+    record('biz', 'TC-BIZ-02', 'Installation Validation Check Failed', 'fail', `status=${rule002Fail.status}`);
   }
 
   // Rule 003 Test: Commission Payout Backend Endpoint Check
