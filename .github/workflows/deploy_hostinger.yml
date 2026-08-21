@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
 
 jobs:
   web-deploy:
@@ -24,7 +25,18 @@ jobs:
           npm ci || npm install
           npx prisma generate
 
-      - name: 🚀 FTP Deploy to Hostinger public_html
+      - name: 🚀 Trigger Hostinger Git Webhook (if configured)
+        if: env.HAS_WEBHOOK == 'true'
+        env:
+          HAS_WEBHOOK: ${{ secrets.HOSTINGER_WEBHOOK_URL != '' }}
+        run: |
+          echo "Triggering Hostinger Git Auto-Deployment Webhook..."
+          curl -s -X POST "${{ secrets.HOSTINGER_WEBHOOK_URL }}" || echo "Webhook trigger sent"
+
+      - name: 🚀 FTP Deploy to Hostinger public_html (if FTP_PASSWORD is set)
+        if: env.HAS_FTP == 'true'
+        env:
+          HAS_FTP: ${{ secrets.FTP_PASSWORD != '' }}
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER || '145.79.20.73' }}
