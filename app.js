@@ -293,7 +293,7 @@ function saveStateToLocalStorage() {
 
 function loadStateFromLocalStorage() {
   try {
-    const cleanMarker = 'nobti_clean_prod_v1';
+    const cleanMarker = 'nobti_clean_prod_v5';
     const isCleaned = localStorage.getItem('nobti_crm_clean_marker');
 
     // Purge previous test mock data if present
@@ -301,6 +301,15 @@ function loadStateFromLocalStorage() {
       localStorage.removeItem('nobti_crm_state_v2');
       localStorage.removeItem('nobti_crm_state');
       localStorage.setItem('nobti_crm_clean_marker', cleanMarker);
+      state.prospects = [];
+      state.quotes = [];
+      state.orders = [];
+      state.installations = [];
+      state.payments = [];
+      state.clients = [];
+      state.salespeople = [];
+      state.commissionDeals = [];
+      state.notifications = [];
       saveStateToLocalStorage();
       return;
     }
@@ -3075,52 +3084,128 @@ function showToast(message, type = 'info') {
 }
 
 /* ==========================================================================
-   CATALOGUE DES PACKS & SUPPLÉMENTS
+   CATALOGUE OFFICIEL DES PACKS & SUPPLÉMENTS (NOBTI CRM / ECOM ZEIN)
    ========================================================================== */
 const packsData = [
   {
-    id: 'PCK-01',
-    name: 'Pack Borne Tactile & Ticket Polyclinique',
-    category: 'Polycliniques & Radiologie',
-    image: 'pack_kiosk.jpg',
-    priceHT: 40000,
-    priceTTC: 48000,
-    details: [
-      '1x Borne Tactile 21.5" Qualité Médicale (IPS Full HD, Châssis Acier)',
-      '1x Distributeur de Tickets Thermique Haute Vitesse (250mm/s Silent)',
-      '1x Licence Ecom Zein Queue Enterprise (Serveur Local Inclus)',
-      '1x Câblage Réseau IP, Configuration & Formation du Personnel Inclus',
-      'Garantie Matérielle 12 Mois & Support Technique Dédié'
-    ]
-  },
-  {
-    id: 'PCK-02',
-    name: 'Pack File d\'Attente Dentaire & Smart TV',
-    category: 'Cabinets Dentaires & Spécialistes',
+    id: 'PCK-CAB-PLUS',
+    name: 'Pack Cabinet Plus',
+    category: 'Cabinet avec 1 médecin',
+    targetAudience: 'Cabinet avec 1 médecin',
     image: 'pack_tv.jpg',
-    priceHT: 20416.67,
-    priceTTC: 24500,
+    priceHT: 5000,
+    priceTTC: 6000,
     details: [
-      '1x Écran Commercial Smart TV 55" 4K UHD (Utilisation Continue 16/7)',
-      '1x Boîtier Contrôleur High-Speed Android/Windows Ecom Zein OS',
-      '1x Logiciel Ecom Zein Smart TV Signage & Synthèse Vocale Chime',
-      '1x Kit Support Murale Orientable & Câblage HD',
-      'Garantie Matérielle 12 Mois Inclus'
+      'Système Nobti Pro',
+      'Imprimante thermique',
+      'Écran tactile 16"',
+      'Mini PC professionnel',
+      'Gestion d\'un médecin',
+      'Gestion des tickets',
+      'Tableau de bord médecin',
+      'Tableau de bord secrétaire',
+      'Affichage des tickets sur l\'écran TV de la salle d\'attente',
+      'Appel vocal automatique des patients',
+      'Installation, configuration et mise en service incluses',
+      'Formation complète de l\'équipe',
+      'Assistance technique pendant 12 mois',
+      'Support technique à distance et service après-vente (SAV)'
     ]
   },
   {
-    id: 'PCK-03',
-    name: 'Pack Enterprise Multi-Étages & Audio Vocale',
-    category: 'Hôpitaux Privés & Grands Centres Médicaux',
-    image: 'pack_kiosk.jpg',
-    priceHT: 79166.67,
-    priceTTC: 95000,
+    id: 'PCK-CAB-PRO',
+    name: 'Pack Cabinet Pro',
+    category: 'Cabinets médicaux jusqu\'à 4 médecins',
+    targetAudience: 'Cabinets médicaux jusqu\'à 4 médecins',
+    image: 'pack_tv.jpg',
+    priceHT: 6415.83,
+    priceTTC: 7699,
     details: [
-      '2x Bornes Tactiles Médicales 21.5" Multi-services & Multi-langues',
-      '4x Écrans Smart TV 55" D\'affichage Synchronisés Multi-étages',
-      '1x Serveur Central Ecom Zein Enterprise & Moteur Vocale Ar/Fr',
-      'Installation Terrain, Intégration Système & Formation Chef de Service',
-      'Garantie Constructeur 24 Mois sur Site'
+      'Système Nobti Pro',
+      'Imprimante thermique',
+      'Écran tactile 16"',
+      'Smart TV 32"',
+      'Mini PC professionnel',
+      'Gestion jusqu\'à 5 médecins',
+      'Gestion des tickets',
+      'Tableau de bord médecin',
+      'Tableau de bord secrétaire',
+      'Affichage des tickets sur l\'écran TV de la salle d\'attente',
+      'Appel vocal automatique des patients',
+      'Gestion de plusieurs salles d\'attente',
+      'Gestion des files prioritaires (urgences)',
+      'Estimation du temps d\'attente',
+      'Gestion des patients absents',
+      'Rappel automatique des patients',
+      'Installation, configuration et mise en service incluses',
+      'Formation complète de l\'équipe',
+      'Assistance technique pendant 12 mois',
+      'Support technique à distance et service après-vente (SAV)'
+    ]
+  },
+  {
+    id: 'PCK-LABO',
+    name: 'Pack Laboratoire',
+    category: 'Laboratoires',
+    targetAudience: 'Laboratoires',
+    image: 'pack_kiosk.jpg',
+    priceHT: 8165.83,
+    priceTTC: 9799,
+    details: [
+      'Système Nobti Enterprise',
+      'Imprimante thermique',
+      'Smart TV 43"',
+      'Écran tactile 16"',
+      'Mini PC professionnel',
+      'Gestion de plusieurs guichets et salles d\'attente',
+      'Gestion des tickets',
+      'Tableau de bord laboratoire',
+      'Affichage des tickets sur l\'écran TV de la salle d\'attente',
+      'Appel vocal automatique des patients',
+      'Estimation du temps d\'attente',
+      'Gestion des patients absents',
+      'Rappel automatique des patients',
+      'Statistiques et rapports avancés',
+      'Installation, configuration et mise en service incluses',
+      'Formation complète de l\'équipe',
+      'Assistance technique pendant 12 mois',
+      'Support technique à distance et service après-vente (SAV)'
+    ]
+  },
+  {
+    id: 'PCK-CLINIQUE-PRO',
+    name: 'Pack Clinique PRO',
+    category: 'Cliniques et Polycliniques',
+    targetAudience: 'Cliniques et Polycliniques',
+    image: 'pack_kiosk.jpg',
+    priceHT: 24082.50,
+    priceTTC: 28899,
+    isStartingFrom: true,
+    details: [
+      'Système Nobti Enterprise',
+      'Borne tactile All-in-One GS-H3 21,5" + imprimante thermique',
+      'Smart TV 55"',
+      'Gestion illimitée des départements',
+      'Gestion de plusieurs services et salles d\'attente',
+      'Gestion des tickets',
+      'Tableau de bord Administrateur',
+      'Tableau de bord médecin',
+      'Tableau de bord secrétaire',
+      'Gestion des utilisateurs et des rôles',
+      'Affichage des tickets sur les écrans TV des salles d\'attente',
+      'Appel vocal automatique des patients',
+      'Gestion des files prioritaires (urgences)',
+      'Estimation du temps d\'attente',
+      'Gestion des patients absents',
+      'Rappel automatique des patients',
+      'Statistiques et rapports avancés',
+      'Export des statistiques et rapports (PDF / Excel)',
+      'Sauvegardes automatiques sécurisées',
+      'Personnalisation complète aux couleurs de votre établissement',
+      'Installation, configuration et mise en service incluses',
+      'Formation complète du personnel',
+      'Assistance technique pendant 12 mois',
+      'Support technique à distance et service après-vente (SAV)'
     ]
   }
 ];
@@ -3128,39 +3213,190 @@ const packsData = [
 const supplementsData = [
   {
     id: 'SUP-01',
-    name: 'Imprimante Ticket Thermique Distributeur',
-    category: 'Matériel Optionnel',
-    image: 'hardware_printer.jpg',
-    priceHT: 2333.33,
-    priceTTC: 2800,
-    details: 'Port Ethernet & USB, Massicot de découpe automatique 1.5M coupes, vitesse 250mm/s, rouleaux 80mm.'
+    name: 'Application Nobti 1.0 (Attente)',
+    category: 'Logiciel & Licence',
+    image: 'pack_tv.jpg',
+    priceHT: 1600,
+    priceTTC: 1920,
+    available: true,
+    observation: 'Disponible',
+    details: 'Application Nobti 1.0 dédiée à la gestion intelligente de la file d\'attente.'
   },
   {
     id: 'SUP-02',
-    name: 'Bouton d\'Appel Sans Fil pour Médecin',
-    category: 'Accessoires Médicaux',
-    image: 'hardware_printer.jpg',
-    priceHT: 416.67,
-    priceTTC: 500,
-    details: 'Portée radio 100 mètres, batterie Lithium longue durée 2 ans, appel 1-clic du patient suivant.'
+    name: 'Application Nobti 1.0 (Attente + RDV)',
+    category: 'Logiciel & Licence',
+    image: 'pack_tv.jpg',
+    priceHT: 2800,
+    priceTTC: 3360,
+    available: true,
+    observation: 'Disponible',
+    details: 'Application Nobti 1.0 complète avec gestion de la file d\'attente et prise de RDV.'
   },
   {
     id: 'SUP-03',
-    name: 'Carton de 20 Rouleaux Papier Thermique High-Grade',
-    category: 'Consommables',
+    name: 'Ecran tactile WDLINK 15,6"',
+    category: 'Écrans Tactiles',
     image: 'hardware_printer.jpg',
-    priceHT: 250,
-    priceTTC: 300,
-    details: 'Papier thermique premium 80x80mm sans BPA, impression nette garantie 5 ans d\'archivage.'
+    priceHT: 2500,
+    priceTTC: 3000,
+    available: true,
+    observation: 'Disponible',
+    details: 'Écran tactile capacitif WDLINK 15,6 pouces haute précision.'
   },
   {
     id: 'SUP-04',
-    name: 'Support Murale Orientable et Inclinable 43"-65"',
-    category: 'Fixations & Montage',
+    name: 'Ecran tactile POS 15,6" i3',
+    category: 'Écrans Tactiles',
     image: 'hardware_printer.jpg',
-    priceHT: 500,
-    priceTTC: 600,
-    details: 'Acier renforcé VESA 400x400, inclinaison -15°/+15°, orientation 180°, charge maximale 50kg.'
+    priceHT: 4200,
+    priceTTC: 5040,
+    available: true,
+    observation: 'Disponible',
+    details: 'Terminal tactile POS 15,6 pouces avec processeur Intel Core i3.'
+  },
+  {
+    id: 'SUP-05',
+    name: 'Ecran Integrer POS BLANC 15,6" i5 8g 128g',
+    category: 'Écrans Intégrés',
+    image: 'hardware_printer.jpg',
+    priceHT: 5500,
+    priceTTC: 6600,
+    available: true,
+    observation: 'Disponible',
+    details: 'Terminal tout-en-un Blanc 15,6" Intel Core i5, 8 Go RAM, 128 Go SSD.'
+  },
+  {
+    id: 'SUP-06',
+    name: 'Ecran Integrer POS NOIR 15,6" i5 8g 128g',
+    category: 'Écrans Intégrés',
+    image: 'hardware_printer.jpg',
+    priceHT: 4800,
+    priceTTC: 5760,
+    available: true,
+    observation: 'Disponible',
+    details: 'Terminal tout-en-un Noir 15,6" Intel Core i5, 8 Go RAM, 128 Go SSD.'
+  },
+  {
+    id: 'SUP-07',
+    name: 'Mini PC Pro i3 8g 128g',
+    category: 'Unités Centrales',
+    image: 'hardware_printer.jpg',
+    priceHT: 800,
+    priceTTC: 960,
+    available: true,
+    observation: 'Disponible',
+    details: 'Mini PC professionnel ultra-compact Intel i3, 8 Go RAM, 128 Go SSD.'
+  },
+  {
+    id: 'SUP-08',
+    name: 'SMART TV 32°',
+    category: 'Affichage & Téléviseurs',
+    image: 'pack_tv.jpg',
+    priceHT: 1400,
+    priceTTC: 1680,
+    available: true,
+    observation: 'Disponible',
+    details: 'Smart TV 32 pouces pour affichage des numéros en salle d\'attente.'
+  },
+  {
+    id: 'SUP-09',
+    name: 'SMART TV 43°',
+    category: 'Affichage & Téléviseurs',
+    image: 'pack_tv.jpg',
+    priceHT: 2700,
+    priceTTC: 3240,
+    available: true,
+    observation: 'Disponible',
+    details: 'Smart TV 43 pouces Full HD pour affichage dynamique et appel vocal.'
+  },
+  {
+    id: 'SUP-10',
+    name: 'SMART TV 50°',
+    category: 'Affichage & Téléviseurs',
+    image: 'pack_tv.jpg',
+    priceHT: 3900,
+    priceTTC: 4680,
+    available: true,
+    observation: 'Disponible',
+    details: 'Smart TV 50 pouces 4K UHD pour grands espaces d\'accueil.'
+  },
+  {
+    id: 'SUP-11',
+    name: 'SMART TV 55°',
+    category: 'Affichage & Téléviseurs',
+    image: 'pack_tv.jpg',
+    priceHT: 4800,
+    priceTTC: 5760,
+    available: true,
+    observation: 'Disponible',
+    details: 'Smart TV 55 pouces 4K UHD grand format pour cliniques et hôpitaux.'
+  },
+  {
+    id: 'SUP-12',
+    name: 'Imprimante thermique Blanc',
+    category: 'Imprimantes Tickets',
+    image: 'hardware_printer.jpg',
+    priceHT: 650,
+    priceTTC: 780,
+    available: true,
+    observation: 'Disponible',
+    details: 'Imprimante thermique 80mm finition Blanche avec massicot automatique.'
+  },
+  {
+    id: 'SUP-13',
+    name: 'Imprimante thermique NOIR',
+    category: 'Imprimantes Tickets',
+    image: 'hardware_printer.jpg',
+    priceHT: 650,
+    priceTTC: 780,
+    available: true,
+    observation: 'Disponible',
+    details: 'Imprimante thermique 80mm finition Noire avec massicot automatique.'
+  },
+  {
+    id: 'SUP-14',
+    name: 'Carton Papier',
+    category: 'Consommables',
+    image: 'hardware_printer.jpg',
+    priceHT: 680,
+    priceTTC: 816,
+    available: true,
+    observation: 'Disponible',
+    details: 'Carton de rouleaux papier thermique haute qualité pour tickets Nobti.'
+  },
+  {
+    id: 'SUP-15',
+    name: 'Borne Tactile All in one GS-H3 21,5 et imprimante Intégrée + APPLICATION',
+    category: 'Bornes Tactiles Luxe',
+    image: 'pack_kiosk.jpg',
+    priceHT: 16000,
+    priceTTC: 19200,
+    available: true,
+    observation: 'Pack Luxe + APPLICATION',
+    details: 'Borne tactile All-in-One GS-H3 21,5" avec imprimante thermique intégrée et application Nobti incluse.'
+  },
+  {
+    id: 'SUP-16',
+    name: 'Afficheur guichet led 52X15X5.5 8 digits connexion',
+    category: 'Afficheurs LED',
+    image: 'hardware_printer.jpg',
+    priceHT: 3000,
+    priceTTC: 3600,
+    available: false,
+    observation: 'Mazal mawajdin',
+    details: 'Afficheur guichet LED 52x15x5.5 cm 8 digits connexion directe.'
+  },
+  {
+    id: 'SUP-17',
+    name: 'Afficheur guichet led 4 LIGNES',
+    category: 'Afficheurs LED',
+    image: 'hardware_printer.jpg',
+    priceHT: 9700,
+    priceTTC: 11640,
+    available: false,
+    observation: 'Mazal mawajdin',
+    details: 'Afficheur guichet LED multi-services 4 lignes haute visibilité.'
   }
 ];
 
@@ -3171,7 +3407,7 @@ function renderPacksView() {
     <div class="page-header">
       <div>
         <h1 class="page-title"><i data-lucide="package"></i> Packs & Supp</h1>
-        <p class="page-subtitle">Sélectionnez un pack, ajoutez des suppléments sur-mesure et composez un Devis Officiel pour votre client.</p>
+        <p class="page-subtitle">Sélectionnez un pack officiel, ajoutez des suppléments sur-mesure et composez un Devis pour votre client.</p>
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
         <button class="btn btn-primary btn-sm" onclick="openPackQuoteBuilder();">
@@ -3187,19 +3423,19 @@ function renderPacksView() {
     <!-- Section 1: Packs Solutions -->
     <div style="margin-bottom:2.5rem;">
       <h2 style="font-size:1.25rem; color:#1F2937; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-        <i data-lucide="layers" style="color:#2563EB;"></i> 1. Packs Solutions Complètes (Pack clé en main)
+        <i data-lucide="layers" style="color:#2563EB;"></i> 1. LES PACKS NOBTI CRM (${packsData.length} Solutions)
       </h2>
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem;">
         ${packsData.map(p => `
           <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; padding:0; overflow:hidden; border:1px solid #E2E8F0; transition:all 0.2s ease; position:relative;">
-            <div style="height:180px; overflow:hidden; position:relative; background:#F8FAFC;">
+            <div style="height:170px; overflow:hidden; position:relative; background:#F8FAFC;">
               <img src="${p.image}" alt="${p.name}" style="width:100%; height:100%; object-fit:cover;">
-              <span class="badge badge-blue" style="position:absolute; top:12px; left:12px; font-weight:700;">${p.category}</span>
+              <span class="badge badge-blue" style="position:absolute; top:12px; left:12px; font-weight:700;">🎯 ${p.targetAudience}</span>
               ${isSuperAdmin ? `
                 <div style="position:absolute; top:12px; right:12px; display:flex; gap:0.35rem; z-index:5;">
                   <button onclick="openEditPackModal('${p.id}')" title="Modifier le Pack (Super Admin)" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); border:1px solid #CBD5E1; color:#1E293B;">
-                    <i data-lucide="edit" style="width:13px; height:13px;"></i> Modifier
+                    <i data-lucide="edit" style="width:13px; height:13px;"></i>
                   </button>
                   <button onclick="deletePack('${p.id}')" title="Supprimer le Pack (Super Admin)" class="btn btn-danger btn-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem; background:rgba(239,68,68,0.95); color:white;">
                     <i data-lucide="trash-2" style="width:13px; height:13px;"></i>
@@ -3210,33 +3446,34 @@ function renderPacksView() {
             
             <div style="padding:1.25rem; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
-                <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.5rem;">${p.name}</h3>
+                <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.3rem;">${p.name}</h3>
+                <div style="font-size:0.75rem; color:#64748B; margin-bottom:0.75rem;">Public ciblé : <strong style="color:#1E293B;">${p.targetAudience}</strong></div>
                 
                 <!-- Prix HT & TTC -->
-                <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.75rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:0.75rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
                   <div>
-                    <span style="font-size:0.75rem; color:#64748B; display:block;">Prix Hors Taxe (HT)</span>
-                    <strong style="font-size:1rem; color:#334155;">${Math.round(p.priceHT).toLocaleString()} MAD</strong>
+                    <span style="font-size:0.72rem; color:#64748B; display:block;">Prix Hors Taxe (HT)</span>
+                    <strong style="font-size:0.95rem; color:#334155;">${p.priceHT.toLocaleString()} DH</strong>
                   </div>
                   <div style="text-align:right;">
-                    <span style="font-size:0.75rem; color:#2563EB; display:block; font-weight:600;">Prix Total TTC (TVA 20%)</span>
-                    <strong style="font-size:1.2rem; color:#2563EB; font-weight:800;">${p.priceTTC.toLocaleString()} MAD</strong>
+                    <span style="font-size:0.72rem; color:#2563EB; display:block; font-weight:600;">Prix Total TTC</span>
+                    <strong style="font-size:1.25rem; color:#2563EB; font-weight:900;">${p.isStartingFrom ? 'À partir de ' : ''}${p.priceTTC.toLocaleString()} DH</strong>
                   </div>
                 </div>
 
                 <!-- Détails checklist -->
-                <div style="font-weight:700; font-size:0.82rem; color:#475569; margin-bottom:0.5rem;">Matériel & Logiciel Inclus:</div>
-                <ul style="list-style:none; padding:0; margin:0 0 1.25rem 0; display:flex; flex-direction:column; gap:0.4rem;">
+                <div style="font-weight:700; font-size:0.8rem; color:#475569; margin-bottom:0.4rem;">Éléments & Services Inclus :</div>
+                <ul style="list-style:none; padding:0; margin:0 0 1.25rem 0; display:flex; flex-direction:column; gap:0.35rem; max-height:220px; overflow-y:auto;">
                   ${p.details.map(d => `
-                    <li style="font-size:0.8rem; color:#334155; display:flex; align-items:flex-start; gap:0.4rem;">
-                      <i data-lucide="check-circle-2" style="width:15px; height:15px; color:#16A34A; flex-shrink:0; margin-top:2px;"></i>
+                    <li style="font-size:0.78rem; color:#334155; display:flex; align-items:flex-start; gap:0.4rem;">
+                      <i data-lucide="check-circle-2" style="width:14px; height:14px; color:#16A34A; flex-shrink:0; margin-top:2px;"></i>
                       <span>${d}</span>
                     </li>
                   `).join('')}
                 </ul>
               </div>
 
-              <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="openPackQuoteBuilder('${p.id}')">
+              <button class="btn btn-primary" style="width:100%; justify-content:center; padding:0.7rem; font-weight:800;" onclick="openPackQuoteBuilder('${p.id}')">
                 <i data-lucide="file-plus"></i> Choisir ce Pack & Composer Devis
               </button>
             </div>
@@ -3248,39 +3485,45 @@ function renderPacksView() {
     <!-- Section 2: Suppléments & Optionnels -->
     <div>
       <h2 style="font-size:1.25rem; color:#1F2937; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-        <i data-lucide="plus-circle" style="color:#F59E0B;"></i> 2. Suppléments & Équipements Optionnels
+        <i data-lucide="plus-circle" style="color:#F59E0B;"></i> 2. LES ÉLÉMENTS SUPPLÉMENTAIRES (${supplementsData.length} Suppléments)
       </h2>
 
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem;">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
         ${supplementsData.map(s => `
-          <div class="card" style="padding:0; overflow:hidden; border:1px solid #E2E8F0; position:relative;">
-            <div style="height:140px; overflow:hidden; background:#F8FAFC; position:relative;">
-              <img src="${s.image}" alt="${s.name}" style="width:100%; height:100%; object-fit:cover;">
-              ${isSuperAdmin ? `
-                <div style="position:absolute; top:8px; right:8px; display:flex; gap:0.25rem; z-index:5;">
-                  <button onclick="openEditSupplementModal('${s.id}')" title="Modifier l'option (Super Admin)" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.45rem; font-size:0.72rem; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); border:1px solid #CBD5E1; color:#1E293B;">
-                    <i data-lucide="edit" style="width:12px; height:12px;"></i>
-                  </button>
-                  <button onclick="deleteSupplement('${s.id}')" title="Supprimer l'option (Super Admin)" class="btn btn-danger btn-sm" style="padding:0.2rem 0.45rem; font-size:0.72rem; background:rgba(239,68,68,0.95); color:white;">
-                    <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
-                  </button>
+          <div class="card" style="padding:0; overflow:hidden; border:1px solid #E2E8F0; position:relative; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="padding:1rem 1.25rem 0.5rem 1.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                <span class="badge badge-amber" style="font-size:0.68rem;">${s.category}</span>
+                ${s.available ? `
+                  <span class="badge badge-success-green" style="font-size:0.68rem; font-weight:700;">✓ Disponible</span>
+                ` : `
+                  <span class="badge badge-urgent-red" style="font-size:0.68rem; font-weight:700;">✕ Indisponible</span>
+                `}
+              </div>
+              <h4 style="font-size:0.95rem; font-weight:800; color:#1F2937; margin-bottom:0.35rem; line-height:1.3;">${s.name}</h4>
+              ${s.observation && s.observation !== 'Disponible' ? `
+                <div style="font-size:0.72rem; color:${s.available ? '#2563EB' : '#DC2626'}; font-weight:700; margin-bottom:0.5rem; background:${s.available ? '#EFF6FF' : '#FEF2F2'}; padding:0.25rem 0.5rem; border-radius:6px; display:inline-block;">
+                  ℹ️ Observation : ${s.observation}
                 </div>
               ` : ''}
-            </div>
-            
-            <div style="padding:1rem;">
-              <span class="badge badge-amber" style="font-size:0.7rem; margin-bottom:0.4rem; display:inline-block;">${s.category}</span>
-              <h4 style="font-size:0.95rem; font-weight:700; color:#1F2937; margin-bottom:0.5rem;">${s.name}</h4>
               
-              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.75rem; background:#F8FAFC; padding:0.5rem 0.75rem; border-radius:6px;">
-                <span style="font-size:0.75rem; color:#64748B;">HT: ${Math.round(s.priceHT).toLocaleString()} MAD</span>
-                <strong style="font-size:1rem; color:#16A34A;">TTC: ${s.priceTTC.toLocaleString()} MAD</strong>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0.6rem 0; background:#F8FAFC; padding:0.5rem 0.75rem; border-radius:8px; border:1px solid #E2E8F0;">
+                <div>
+                  <span style="font-size:0.7rem; color:#64748B; display:block;">Prix HT</span>
+                  <strong style="font-size:0.95rem; color:#1E293B;">${s.priceHT.toLocaleString()} DH/HT</strong>
+                </div>
+                <div style="text-align:right;">
+                  <span style="font-size:0.7rem; color:#16A34A; display:block;">TTC (20%)</span>
+                  <strong style="font-size:1.05rem; color:#16A34A;">${s.priceTTC.toLocaleString()} DH</strong>
+                </div>
               </div>
 
-              <p style="font-size:0.78rem; color:#64748B; margin-bottom:0.85rem; line-height:1.3;">${s.details}</p>
+              <p style="font-size:0.78rem; color:#64748B; margin-bottom:0.85rem; line-height:1.35;">${s.details}</p>
+            </div>
 
-              <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="openPackQuoteBuilder(null, '${s.id}')">
-                <i data-lucide="shopping-cart"></i> + Composer Devis avec cette Option
+            <div style="padding:0.75rem 1.25rem 1.25rem 1.25rem; border-top:1px solid #F1F5F9;">
+              <button class="btn ${s.available ? 'btn-secondary' : 'btn-secondary'} btn-sm" style="width:100%; justify-content:center;" onclick="openPackQuoteBuilder(null, '${s.id}')" ${!s.available ? 'disabled style="opacity:0.6; cursor:not-allowed;"' : ''}>
+                <i data-lucide="shopping-cart"></i> ${s.available ? '+ Ajouter au Devis' : 'En Rupture de Stock'}
               </button>
             </div>
           </div>
@@ -3368,9 +3611,9 @@ window.openPackQuoteBuilder = function(preselectedPackId, preselectedSuppId) {
 
           <div id="qb-existing-client-box">
             <select id="qb-existing-client-select" class="form-input" style="font-size:0.85rem;">
-              ${state.prospects.map(p => `
-                <option value="${p.clinic} — ${p.name}">${p.clinic} (Dr. ${p.name}) — ${p.city}</option>
-              `).join('')}
+              ${state.prospects.length > 0 ? state.prospects.map(p => `
+                <option value="${p.clinic} — ${p.name}">${p.clinic} (${p.name}) — ${p.city}</option>
+              `).join('') : '<option value="Cabinet Médical Partenaire">-- Aucun prospect enregistré (Cochez "+ Nouveau Client" ci-dessus) --</option>'}
             </select>
           </div>
 
