@@ -39,10 +39,10 @@ jobs:
           HAS_FTP: ${{ secrets.FTP_PASSWORD != '' }}
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER || '145.79.20.73' }}
-          username: ${{ secrets.FTP_USERNAME || 'u721391917' }}
+          server: ${{ secrets.FTP_SERVER || 'ftp.tassnimproduct.shop' }}
+          username: ${{ secrets.FTP_USERNAME || 'u721391917.tassnimproduct' }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/
+          server-dir: /
           exclude: |
             **/.git*
             **/.git*/**

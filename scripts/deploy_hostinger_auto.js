@@ -13,9 +13,9 @@ async function deployToHostinger() {
   try {
     console.log("🚀 CONNEXION ET DÉPLOIEMENT AUTOMATIQUE VERS HOSTINGER CLOUD...");
 
-    const ftpHost = process.env.FTP_SERVER || "145.79.20.73";
-    const ftpUser = process.env.FTP_USERNAME || "u721391917";
-    const ftpPassword = process.env.FTP_PASSWORD || "ZeinPass2026!";
+    const ftpHost = process.env.FTP_SERVER || "ftp.tassnimproduct.shop";
+    const ftpUser = process.env.FTP_USERNAME || "u721391917.tassnimproduct";
+    const ftpPassword = process.env.FTP_PASSWORD || "Jb462920@";
 
     await client.access({
       host: ftpHost,
@@ -25,9 +25,13 @@ async function deployToHostinger() {
     });
 
     console.log("✔ Connecté au serveur Hostinger.");
-    await client.cd("/public_html");
+    try {
+      await client.cd("/public_html");
+    } catch (_) {
+      console.log("  (Répertoire racine déjà positionné sur public_html)");
+    }
 
-    console.log("📤 Synchronisation des fichiers applicatifs vers Hostinger (/public_html)...");
+    console.log("📤 Synchronisation des fichiers applicatifs vers Hostinger...");
 
     // Upload core frontend files
     const coreFiles = [
