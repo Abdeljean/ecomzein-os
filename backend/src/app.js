@@ -6,32 +6,26 @@ import { config } from './config/index.js';
 import apiRoutes from './routes/index.js';
 import { globalErrorHandler } from './middlewares/errorHandler.js';
 
-// Resilient cookie parser (falls back to native JS cookie parsing if module not found in environment)
-let cookieParserMiddleware;
-try {
-  const cookieParserModule = await import('cookie-parser');
-  cookieParserMiddleware = (cookieParserModule.default || cookieParserModule)();
-} catch (e) {
-  cookieParserMiddleware = (req, res, next) => {
-    req.cookies = req.cookies || {};
-    const cookieHeader = req.headers?.cookie;
-    if (cookieHeader) {
-      cookieHeader.split(';').forEach(cookie => {
-        const parts = cookie.split('=');
-        const name = parts.shift()?.trim();
-        const value = parts.join('=')?.trim();
-        if (name) {
-          try {
-            req.cookies[name] = decodeURIComponent(value || '');
-          } catch (_) {
-            req.cookies[name] = value;
-          }
+// Zero-dependency native cookie parser middleware
+const cookieParserMiddleware = (req, res, next) => {
+  req.cookies = req.cookies || {};
+  const cookieHeader = req.headers?.cookie;
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach(cookie => {
+      const parts = cookie.split('=');
+      const name = parts.shift()?.trim();
+      const value = parts.join('=')?.trim();
+      if (name) {
+        try {
+          req.cookies[name] = decodeURIComponent(value || '');
+        } catch (_) {
+          req.cookies[name] = value;
         }
-      });
-    }
-    next();
-  };
-}
+      }
+    });
+  }
+  next();
+};
 
 const app = express();
 app.disable('x-powered-by');
