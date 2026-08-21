@@ -33,20 +33,10 @@ jobs:
           echo "Triggering Hostinger Git Auto-Deployment Webhook..."
           curl -s -X POST "${{ secrets.HOSTINGER_WEBHOOK_URL }}" || echo "Webhook trigger sent"
 
-      - name: 🚀 FTP Deploy to Hostinger public_html (if FTP_PASSWORD is set)
-        if: env.HAS_FTP == 'true'
+      - name: 🚀 Direct FTP Deploy to Hostinger public_html
         env:
-          HAS_FTP: ${{ secrets.FTP_PASSWORD != '' }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER || 'ftp.tassnimproduct.shop' }}
-          username: ${{ secrets.FTP_USERNAME || 'u721391917.tassnimproduct' }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tmp/**
-            **/storage/uploads/**
-            ecomzein_*.zip
+          FTP_SERVER: ${{ secrets.FTP_SERVER || 'ftp.tassnimproduct.shop' }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME || 'u721391917.tassnimproduct' }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD || 'Jb462920@' }}
+        run: |
+          node scripts/deploy_hostinger_auto.js

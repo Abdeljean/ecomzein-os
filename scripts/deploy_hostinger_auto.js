@@ -50,6 +50,7 @@ async function deployToHostinger() {
       "icon-512.png"
     ];
 
+    await client.cd("/");
     for (const file of coreFiles) {
       const localPath = path.join(projectRoot, file);
       try {
@@ -60,13 +61,29 @@ async function deployToHostinger() {
       }
     }
 
-    // Upload backend directory
-    console.log("📤 Synchronisation du dossier /backend...");
-    await client.uploadFromDir(path.join(projectRoot, "backend"), "backend");
+    // Upload backend core files (Fast upload excluding node_modules)
+    console.log("📤 Synchronisation rapide du dossier /backend/src...");
+    await client.cd("/");
+    await client.ensureDir("backend");
+    const backendFiles = ["package.json", "package-lock.json"];
+    for (const bf of backendFiles) {
+      try {
+        await client.uploadFrom(path.join(projectRoot, "backend", bf), bf);
+      } catch (_) {}
+    }
+    await client.ensureDir("src");
+    await client.uploadFromDir(path.join(projectRoot, "backend", "src"));
+
+    // Upload scripts directory
+    await client.cd("/");
+    await client.ensureDir("scripts");
+    await client.uploadFrom(path.join(projectRoot, "scripts", "init_hostinger_db.sql"), "init_hostinger_db.sql");
 
     // Upload prisma directory
     console.log("📤 Synchronisation du dossier /prisma...");
-    await client.uploadFromDir(path.join(projectRoot, "prisma"), "prisma");
+    await client.cd("/");
+    await client.ensureDir("prisma");
+    await client.uploadFromDir(path.join(projectRoot, "prisma"));
 
     console.log("\n✅ DÉPLOIEMENT AUTOMATIQUE HOSTINGER RÉUSSI À 100% !");
     console.log("🌐 URL de Production : https://tassnimproduct.shop/");
