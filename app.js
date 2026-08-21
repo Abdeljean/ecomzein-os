@@ -1314,6 +1314,7 @@ function renderOperationsView() {
             </tbody>
           </table>
         </div>
+      `}
     ` : `
       ${state.installations.length === 0 ? `
         <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
