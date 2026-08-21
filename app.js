@@ -390,6 +390,25 @@ function clearStressTestProspects() {
   renderActiveView();
 }
 
+// ─── RESET ALL DATA (ADMIN) ──────────────────────────────────────────────────
+window.resetAllData = function() {
+  state.prospects = [];
+  state.quotes = [];
+  state.orders = [];
+  state.installations = [];
+  state.payments = [];
+  state.supportTickets = [];
+  state.clients = [];
+  state.commissionDeals = [];
+  state.notifications = [];
+  state.auditLogs = [];
+  localStorage.removeItem('nobti_crm_state_v2');
+  localStorage.setItem('nobti_crm_clean_marker', 'nobti_clean_prod_v2');
+  saveStateToLocalStorage();
+  showToast('🧹 Base de données réinitialisée avec succès ! Toutes les données ont été supprimées.', 'success');
+  renderActiveView();
+};
+
 // ─── SINGLE APP ENTRY POINT ───────────────────────────────────────────────────
 function initApp() {
   loadStateFromLocalStorage();
@@ -492,6 +511,7 @@ function triggerPWAInstall() {
 }
 
 function setupEventListeners() {
+  // Toggle sidebar (hamburger)
   document.querySelectorAll('.toggle-sidebar-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
@@ -504,12 +524,28 @@ function setupEventListeners() {
     });
   });
 
+  // Static click binding on [data-view] elements
   document.querySelectorAll('[data-view]').forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      const view = item.getAttribute('data-view');
-      switchView(view);
+      switchView(item.getAttribute('data-view'));
     });
+  });
+
+  // Event delegation fallback: catch ANY click on [data-view] that wasn't bound above
+  document.addEventListener('click', (e) => {
+    const viewEl = e.target.closest('[data-view]');
+    if (viewEl) {
+      e.preventDefault();
+      switchView(viewEl.getAttribute('data-view'));
+    }
+    // Handle onclick buttons that use window.* functions
+    const onclickBtn = e.target.closest('[onclick]');
+    if (onclickBtn) {
+      // Let the native onclick handler run — just ensure no default link behavior
+      const href = onclickBtn.getAttribute('href');
+      if (href === '#') e.preventDefault();
+    }
   });
 }
 
@@ -1801,22 +1837,85 @@ function renderFinanceView() {
    5. PARAMÈTRES (ADMINISTRATION ET UTILISATEURS)
    ========================================================================== */
 function renderAdministrationView() {
-  if (!state.adminSubTab) state.adminSubTab = 'users';
+  if (!state.adminSubTab) state.adminSubTab = 'import';
 
   return `
     <div class="page-header">
       <div>
-        <h1 class="page-title"><i data-lucide="shield-check"></i> Administration & Architecture Métier</h1>
-        <p class="page-subtitle">Gestion des rôles RBAC, traçabilité des logs d'audit et utilisateurs.</p>
+        <h1 class="page-title"><i data-lucide="shield-check"></i> Paramètres & Administration</h1>
+        <p class="page-subtitle">Configuration de l'entreprise, gestion des données, utilisateurs et traçabilité.</p>
       </div>
       <div style="display:flex; gap:0.4rem; overflow-x:auto; -webkit-overflow-scrolling:touch;">
-        <button class="btn ${state.adminSubTab === 'company' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='company'; renderActiveView();">🏢 Coordonnées Société & Devis</button>
+        <button class="btn ${state.adminSubTab === 'import' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='import'; renderActiveView();">📋 Données & Import</button>
+        <button class="btn ${state.adminSubTab === 'company' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='company'; renderActiveView();">🏢 Coordonnées Société</button>
         <button class="btn ${state.adminSubTab === 'users' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='users'; renderActiveView();">Comptes Utilisateurs</button>
         <button class="btn ${state.adminSubTab === 'rbac' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='rbac'; renderActiveView();">Matrice RBAC</button>
         <button class="btn ${state.adminSubTab === 'audit' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='audit'; renderActiveView();">Logs d'Audit (${state.auditLogs.length})</button>
-        <button class="btn ${state.adminSubTab === 'devlogs' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='devlogs'; renderActiveView();">📋 Developer Logs & Performance</button>
+        <button class="btn ${state.adminSubTab === 'devlogs' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.adminSubTab='devlogs'; renderActiveView();">📋 Developer Logs</button>
       </div>
     </div>
+
+    ${state.adminSubTab === 'import' ? `
+      <!-- SECTION: DONNÉES & IMPORT GOOGLE SHEETS -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.25rem;">
+
+        <!-- Import Google Sheets Card -->
+        <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+            <div style="width:40px; height:40px; background:#DCFCE7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📋</div>
+            <div>
+              <h3 style="font-size:1.05rem; font-weight:800; color:#1F2937;">Importer depuis Google Sheets</h3>
+              <p style="font-size:0.78rem; color:#64748B;">Charger votre base de données "Nobti CRM" en 1 clic</p>
+            </div>
+          </div>
+          <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:0.85rem; font-size:0.82rem; color:#1E40AF; line-height:1.5; margin-bottom:1rem;">
+            <strong>Comment ça marche :</strong><br>
+            1. Ouvrez votre Google Sheets ou fichier Excel<br>
+            2. Sélectionnez toutes vos lignes et faites <strong>Ctrl+C</strong><br>
+            3. Cliquez le bouton ci-dessous, collez avec <strong>Ctrl+V</strong> et importez !
+          </div>
+          <button class="btn btn-success" style="width:100%; padding:0.85rem; font-weight:800; font-size:0.92rem; border-radius:12px;" onclick="openGoogleSheetsImportModal()">
+            <i data-lucide="file-spreadsheet"></i> Ouvrir l'Importateur Google Sheets
+          </button>
+        </div>
+
+        <!-- Base de Données Stats & Actions -->
+        <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+            <div style="width:40px; height:40px; background:#FEF3C7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📊</div>
+            <div>
+              <h3 style="font-size:1.05rem; font-weight:800; color:#1F2937;">État de la Base de Données</h3>
+              <p style="font-size:0.78rem; color:#64748B;">Vue rapide de vos données actuelles</p>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.85rem;">
+              <div style="font-size:0.72rem; color:#64748B; font-weight:600;">PROSPECTS</div>
+              <div style="font-size:1.3rem; font-weight:800; color:#2563EB;">${state.prospects.length}</div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.85rem;">
+              <div style="font-size:0.72rem; color:#64748B; font-weight:600;">CLIENTS</div>
+              <div style="font-size:1.3rem; font-weight:800; color:#16A34A;">${state.clients.length}</div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.85rem;">
+              <div style="font-size:0.72rem; color:#64748B; font-weight:600;">COMMANDES</div>
+              <div style="font-size:1.3rem; font-weight:800; color:#F59E0B;">${state.orders.length}</div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.6rem 0.85rem;">
+              <div style="font-size:0.72rem; color:#64748B; font-weight:600;">INSTALLATIONS</div>
+              <div style="font-size:1.3rem; font-weight:800; color:#7C3AED;">${state.installations.length}</div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <button class="btn btn-danger btn-sm" style="width:100%; justify-content:center;" onclick="if(confirm('⚠️ Êtes-vous sûr de vouloir SUPPRIMER toutes les données ? Cette action est irréversible.')) { resetAllData(); }">
+              <i data-lucide="trash-2"></i> Réinitialiser toute la base de données
+            </button>
+          </div>
+        </div>
+      </div>
+    ` : ''}
 
     ${state.adminSubTab === 'company' ? `
       <!-- Configuration Société, Logo & Entête Devis -->
