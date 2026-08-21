@@ -126,10 +126,9 @@ const EnterpriseIdentitySystem = {
   },
 
   requestPasswordReset(email) {
-    const token = `RST-${Math.floor(100000 + Math.random() * 900000)}`;
-    systemLogger.log('EIS Security', `Jeton de réinitialisation généré pour ${email}`, `Token: ${token}`);
-    showToast(`🔑 Jeton de réinitialisation envoyé à ${email} (Code: ${token})`, 'success');
-    return token;
+    systemLogger.log('EIS Security', `Demande de réinitialisation initiée pour ${email}`);
+    showToast(`📩 Si l'adresse ${email} existe, les instructions de réinitialisation ont été envoyées.`, 'info');
+    return true;
   },
 
   verifyEmail(email) {

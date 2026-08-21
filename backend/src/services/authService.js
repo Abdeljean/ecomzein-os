@@ -61,23 +61,43 @@ export async function loginUser(email, password) {
 }
 
 export async function requestReset(email) {
+  const cleanEmail = (email || '').toLowerCase().trim();
   const rawToken = crypto.randomBytes(32).toString('hex');
   const hashedResetToken = crypto.createHash('sha256').update(rawToken).digest('hex');
-  const resetTokenExpiry = new Date(Date.now() + 3600000); // 1h
+  const resetTokenExpiry = new Date(Date.now() + 3600000); // 1h validity
 
-  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-  if (user) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { hashedResetToken, resetTokenExpiry }
-    });
+  try {
+    const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { hashedResetToken, resetTokenExpiry }
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          userName: user.name,
+          userRole: user.role,
+          action: 'PASSWORD_RESET_REQUESTED',
+          entity: 'User',
+          entityId: user.id,
+          newValue: 'Jeton SHA-256 généré (expiration 1h)'
+        }
+      }).catch(() => {});
+    }
+  } catch (dbErr) {
+    logger.warn('[Auth Service] DB lookup warning during password reset request', { error: dbErr.message });
   }
 
-  logger.info('Password reset raw token created and SHA-256 stored in DB', { email });
-  return { rawToken, email };
+  logger.info('Password reset request processed for email', { email: cleanEmail });
+  return { success: true };
 }
 
 export async function resetUserPassword(rawToken, newPassword) {
+  if (!rawToken || typeof rawToken !== 'string') {
+    throw new Error('Jeton de réinitialisation invalide ou expiré.');
+  }
+
   const hashedResetToken = crypto.createHash('sha256').update(rawToken).digest('hex');
 
   const user = await prisma.user.findFirst({
@@ -95,9 +115,71 @@ export async function resetUserPassword(rawToken, newPassword) {
   const newHash = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash: newHash, hashedResetToken: null, resetTokenExpiry: null }
+    data: {
+      passwordHash: newHash,
+      hashedResetToken: null,
+      resetTokenExpiry: null
+    }
   });
+
+  await prisma.auditLog.create({
+    data: {
+      userName: user.name,
+      userRole: user.role,
+      action: 'PASSWORD_RESET_COMPLETED',
+      entity: 'User',
+      entityId: user.id,
+      newValue: 'Mot de passe mis à jour et jeton invalidé'
+    }
+  }).catch(() => {});
 
   logger.info('User password reset successfully with hashed token verification', { userId: user.id });
   return true;
+}
+
+export async function refreshUserToken(refreshToken) {
+  if (!refreshToken) {
+    throw new Error('Jeton de rafraîchissement manquant.');
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, config.jwt.refreshSecret);
+  } catch (err) {
+    logger.warn('[Auth Security] Refresh token verification failed', { err: err.message });
+    throw new Error('Jeton de rafraîchissement invalide ou expiré.');
+  }
+
+  if (decoded.tokenType !== 'refresh') {
+    throw new Error('Type de jeton invalide.');
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+  if (!user) {
+    throw new Error('Utilisateur introuvable.');
+  }
+
+  // Issue new rotated Access & Refresh Tokens
+  const newAccessToken = jwt.sign(
+    { userId: user.id, email: user.email, role: user.role, name: user.name, tokenType: 'access' },
+    config.jwt.accessSecret,
+    { expiresIn: config.jwt.accessExpiresIn }
+  );
+
+  const newRefreshToken = jwt.sign(
+    { userId: user.id, email: user.email, tokenType: 'refresh' },
+    config.jwt.refreshSecret,
+    { expiresIn: config.jwt.refreshExpiresIn }
+  );
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  };
 }
