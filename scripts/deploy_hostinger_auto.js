@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, "..");
 
 async function deployToHostinger() {
-  const client = new ftp.Client(20000);
+  const client = new ftp.Client(25000);
   client.ftp.verbose = false;
 
   try {
@@ -45,6 +45,7 @@ async function deployToHostinger() {
     ];
 
     console.log("📤 Synchronisation des fichiers racine...");
+    await client.cd("/");
     for (const file of rootFiles) {
       const localPath = path.join(projectRoot, file);
       if (fs.existsSync(localPath)) {
@@ -57,10 +58,9 @@ async function deployToHostinger() {
       }
     }
 
-    // Helper for recursive file uploads
-    async function syncDirectory(localDirPath, remoteDirPath) {
+    // Helper for robust file uploads
+    async function uploadDirectoryClean(localDirPath, remoteDirPath) {
       if (!fs.existsSync(localDirPath)) return;
-      await client.ensureDir(remoteDirPath);
       const entries = fs.readdirSync(localDirPath, { withFileTypes: true });
 
       for (const entry of entries) {
@@ -69,9 +69,14 @@ async function deployToHostinger() {
         const remotePath = `${remoteDirPath}/${entry.name}`.replace(/^\/+/, "");
 
         if (entry.isDirectory()) {
-          await syncDirectory(localPath, remotePath);
+          await uploadDirectoryClean(localPath, remotePath);
         } else {
           try {
+            await client.cd("/");
+            const dirParts = remoteDirPath.split("/").filter(Boolean);
+            for (const part of dirParts) {
+              await client.ensureDir(part);
+            }
             await client.uploadFrom(localPath, entry.name);
             console.log(`  ✔ Synchronisé : ${remotePath}`);
           } catch (e) {
@@ -91,7 +96,7 @@ async function deployToHostinger() {
         await client.uploadFrom(bfp, bf);
       }
     }
-    await syncDirectory(path.join(projectRoot, "backend", "src"), "/backend/src");
+    await uploadDirectoryClean(path.join(projectRoot, "backend", "src"), "backend/src");
 
     // Sync scripts
     console.log("📤 Synchronisation du dossier /scripts...");
@@ -104,8 +109,7 @@ async function deployToHostinger() {
 
     // Sync prisma
     console.log("📤 Synchronisation du dossier /prisma...");
-    await client.cd("/");
-    await syncDirectory(path.join(projectRoot, "prisma"), "/prisma");
+    await uploadDirectoryClean(path.join(projectRoot, "prisma"), "prisma");
 
     console.log("\n✅ DÉPLOIEMENT AUTOMATIQUE HOSTINGER RÉUSSI À 100% !");
     console.log("🌐 URL de Production : https://tassnimproduct.shop/");
