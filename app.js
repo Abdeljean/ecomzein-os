@@ -199,110 +199,26 @@ const state = {
     rib: '011 780 0000123456789012 45 (Attijariwafa Bank)'
   },
 
-  // Prospects Ventes
-  prospects: [
-    { id: 'PRO-1001', name: 'Dr. Karim Benali', clinic: 'Clinique Dentaire Al Mansour', phone: '+212 661-492019', city: 'Casablanca', pack: 'Pack Dentaire & TV', status: 'Qualifié', value: 24500, salesperson: 'Youssef El Amrani', notes: 'Intéressé par 2 écrans.', stepIndex: 1 },
-    { id: 'PRO-1002', name: 'Dr. Fatima Zahra Chraibi', clinic: 'Centre de Radiologie Anoual', phone: '+212 663-882210', city: 'Rabat', pack: 'Pack Borne & Ticket', status: 'Devis Envoyé', value: 48000, salesperson: 'Sara Loudiyi', notes: 'Devis transmis le 23 Juillet.', stepIndex: 2 },
-    { id: 'PRO-1003', name: 'Dr. Omar Tazi', clinic: 'Polyclinique Ibn Sina', phone: '+212 662-114477', city: 'Marrakech', pack: 'Système Enterprise', status: 'Négociation', value: 95000, salesperson: 'Youssef El Amrani', notes: 'Demande de remise 10%.', stepIndex: 3 },
-    { id: 'PRO-1004', name: 'Dr. Hind Berrada', clinic: 'Cabinet Majorelle', phone: '+212 667-339900', city: 'Casablanca', pack: 'Pack Smart TV', status: 'À Contacter', value: 16500, salesperson: 'Amine Kabbaj', notes: 'Rappel prévu lundi.', stepIndex: 0 },
-    { id: 'PRO-1005', name: 'Dr. Reda Alami', clinic: 'Polyclinique du Nord', phone: '+212 665-001122', city: 'Tanger', pack: 'Système Enterprise', status: 'Gagné', value: 120000, salesperson: 'Sara Loudiyi', notes: 'Commande confirmée.', stepIndex: 6 }
-  ],
+  // Prospects Ventes (Base Propre)
+  prospects: [],
 
-  // Devis
-  quotes: [
-    { id: 'QT-2026-88', client: 'Centre de Radiologie Anoual', doctor: 'Dr. Fatima Zahra Chraibi', pack: 'Pack Borne & Ticket', items: ['Borne Tactile 21.5"', 'Distributeur de Tickets', 'Logiciel File d\'Attente'], totalHT: 48000, tva: 9600, totalTTC: 57600, date: '2026-07-23', status: 'Envoyé' },
-    { id: 'QT-2026-89', client: 'Clinique Dentaire Al Mansour', doctor: 'Dr. Karim Benali', pack: 'Pack Dentaire & TV', items: ['Écran Smart TV 55"', 'Boîtier Mini PC', 'Logiciel Dentaire'], totalHT: 24500, tva: 4900, totalTTC: 29400, date: '2026-07-24', status: 'Accepté' }
-  ],
+  // Devis (Base Propre)
+  quotes: [],
 
-  // Commandes
-  orders: [
-    { id: 'ORD-8821', client: 'Polyclinique du Nord', doctor: 'Dr. Reda Alami', city: 'Tanger', packName: 'Système Enterprise (5 Étages)', totalTTC: 114000, status: 'Confirmé', paymentStatus: 'Acompte Vérifié' },
-    { id: 'ORD-8822', client: 'Clinique Dentaire Al Mansour', doctor: 'Dr. Karim Benali', city: 'Casablanca', packName: 'Pack Dentaire & TV', totalTTC: 29400, status: 'En Attente', paymentStatus: 'Non Payé' }
-  ],
+  // Commandes (Base Propre)
+  orders: [],
 
-  // Installations Terrain
-  installations: [
-    { id: 'INST-401', client: 'Polyclinique du Nord', doctor: 'Dr. Reda Alami', city: 'Tanger', address: 'Boulevard Mohamed V, Tanger', pack: 'Système Enterprise (5 Étages)', date: '2026-07-26', technician: 'Mehdi Tazi', stage: 'Terminé & Validé', warrantyActivated: true, progress: 100 },
-    { id: 'INST-402', client: 'Cabinet Dentaire Benali', doctor: 'Dr. Karim Benali', city: 'Casablanca', address: '45 Bd Anfa, Casablanca', pack: 'Pack Dentaire & TV', date: '2026-07-25', technician: 'Hassan Amrani', stage: 'En Cours', warrantyActivated: false, progress: 65 },
-    { id: 'INST-403', client: 'Centre de Radiologie Anoual', doctor: 'Dr. Fatima Zahra Chraibi', city: 'Rabat', address: '12 Av. Anoual, Agdal, Rabat', pack: 'Pack Borne & Ticket', date: '2026-07-28', technician: 'Mehdi Tazi', stage: 'Planifié', warrantyActivated: false, progress: 20 },
-    { id: 'INST-404', client: 'Cabinet Majorelle', doctor: 'Dr. Hind Berrada', city: 'Casablanca', address: '88 Bd Zerktouni, Casablanca', pack: 'Pack Smart TV', date: '2026-07-29', technician: 'Hassan Amrani', stage: 'En Route', warrantyActivated: false, progress: 40 }
-  ],
+  // Installations Terrain (Base Propre)
+  installations: [],
 
-  // Factures
-  payments: [
-    { id: 'PAY-301', invoiceNo: 'FACT-2026-44', orderId: 'ORD-8821', client: 'Polyclinique du Nord', amountPaid: 57000, balanceRemaining: 57000, status: 'Vérifié', isOverdue: false },
-    { id: 'PAY-303', invoiceNo: 'FACT-2026-21', orderId: 'ORD-8822', client: 'Clinique Dentaire Al Mansour', amountPaid: 0, balanceRemaining: 29400, status: 'En Retard', isOverdue: true }
-  ],
+  // Factures & Paiements (Base Propre)
+  payments: [],
 
-  // Support Client
-  supportTickets: [
-    { id: 'TCK-901', client: 'Polyclinique du Nord', type: 'Problème Matériel', desc: 'Blocage du rouleau papier distributeur Étage 2.', status: 'Ouvert', tech: 'Mehdi Tazi', anydeskId: '982 110 445' },
-    { id: 'TCK-902', client: 'Cabinet Dentaire Benali', type: 'Renouvellement Licence', desc: 'Renouvellement de licence annuelle Ecom Zein.', status: 'Résolu', tech: 'Hassan Amrani', anydeskId: '341 992 001' }
-  ],
+  // Support Client (Base Propre)
+  supportTickets: [],
 
-  // Répertoire des Clients
-  clients: [
-    {
-      id: 'CLI-201',
-      establishment: 'Polyclinique du Nord',
-      contactName: 'Dr. Reda Alami',
-      phone: '+212 665-001122',
-      email: 'contact@polycliniquenord.ma',
-      city: 'Tanger',
-      address: 'Boulevard Mohamed V, Tanger',
-      mapsUrl: 'https://maps.google.com/?q=35.7766,-5.8039',
-      packInstalled: 'Système Enterprise (5 Étages)',
-      totalPurchases: 114000,
-      status: 'Client VIP',
-      warrantyExpiry: '2027-07-26',
-      notes: 'Installation 5 étages effectuée avec succès. Client très satisfait.'
-    },
-    {
-      id: 'CLI-202',
-      establishment: 'Clinique Dentaire Al Mansour',
-      contactName: 'Dr. Karim Benali',
-      phone: '+212 661-492019',
-      email: 'dr.benali@almansour-dent.ma',
-      city: 'Casablanca',
-      address: '45 Boulevard d\'Anfa, Casablanca',
-      mapsUrl: 'https://maps.google.com/?q=33.5883,-7.6328',
-      packInstalled: 'Pack Dentaire & TV 55"',
-      totalPurchases: 29400,
-      status: 'Sous Garantie',
-      warrantyExpiry: '2027-07-25',
-      notes: 'Installation terminée. Solde en attente de paiement.'
-    },
-    {
-      id: 'CLI-203',
-      establishment: 'Centre de Radiologie Anoual',
-      contactName: 'Dr. Fatima Zahra Chraibi',
-      phone: '+212 663-882210',
-      email: 'direction@radiologie-anoual.ma',
-      city: 'Rabat',
-      address: '12 Av. Anoual, Agdal, Rabat',
-      mapsUrl: 'https://maps.google.com/?q=33.9981,-6.8532',
-      packInstalled: 'Pack Borne & Ticket Polyclinique',
-      totalPurchases: 57600,
-      status: 'Actif',
-      warrantyExpiry: '2027-07-28',
-      notes: 'Devis accepté. Déploiement planifié.'
-    },
-    {
-      id: 'CLI-204',
-      establishment: 'Cabinet Ophtalmologique Majorelle',
-      contactName: 'Dr. Hind Berrada',
-      phone: '+212 667-339900',
-      email: 'dr.berrada@ophtalmo-majorelle.ma',
-      city: 'Casablanca',
-      address: '88 Boulevard Zerktouni, Casablanca',
-      mapsUrl: 'https://maps.google.com/?q=33.5899,-7.6255',
-      packInstalled: 'Pack Smart TV Affichage',
-      totalPurchases: 16500,
-      status: 'Actif',
-      warrantyExpiry: '2027-07-29',
-      notes: 'Installation écran Smart TV en cours.'
-    }
-  ],
+  // Répertoire des Clients (Base Propre)
+  clients: [],
 
   // Utilisateurs & Rôles
   teamMembers: [
@@ -319,28 +235,12 @@ const state = {
     }
   ],
 
-  // Suivi des Commercials & Commissions
-  salespeople: [
-    { id: 'SALES-101', name: 'Youssef El Amrani', role: 'Chef des Ventes', rate: '5%', salesCount: 3, totalRevenue: 188000, totalCommission: 9400, paidCommission: 5000, unpaidCommission: 4400, avatar: 'YE' },
-    { id: 'SALES-102', name: 'Sara Loudiyi', role: 'Commerciale Senior', rate: '5%', salesCount: 2, totalRevenue: 168000, totalCommission: 8400, paidCommission: 8400, unpaidCommission: 0, avatar: 'SL' },
-    { id: 'SALES-103', name: 'Amine Kabbaj', role: 'Commercial Terrain', rate: '4%', salesCount: 1, totalRevenue: 16500, totalCommission: 660, paidCommission: 0, unpaidCommission: 660, avatar: 'AK' }
-  ],
+  // Suivi des Commerciaux & Commissions (Base Propre)
+  salespeople: [],
+  commissionDeals: [],
 
-  commissionDeals: [
-    { dealId: 'DEAL-501', salespersonId: 'SALES-101', client: 'Polyclinique du Nord', pack: 'Système Enterprise (5 Étages)', date: '2026-07-26', amountHT: 95000, rate: '5%', commissionVal: 4750, status: 'Payé' },
-    { dealId: 'DEAL-502', salespersonId: 'SALES-101', client: 'Clinique Dentaire Al Mansour', pack: 'Pack Dentaire & TV 55"', date: '2026-07-24', amountHT: 20416, rate: '5%', commissionVal: 1020, status: 'En Attente Payout' },
-    { dealId: 'DEAL-503', salespersonId: 'SALES-101', client: 'Centre de Radiologie Anoual', pack: 'Pack Borne & Ticket', date: '2026-07-23', amountHT: 72584, rate: '5%', commissionVal: 3630, status: 'En Attente Payout' },
-    { dealId: 'DEAL-504', salespersonId: 'SALES-102', client: 'Hôpital Privé Ibn Rochd', pack: 'Pack Enterprise Multi-Étages', date: '2026-07-20', amountHT: 128000, rate: '5%', commissionVal: 6400, status: 'Payé' },
-    { dealId: 'DEAL-505', salespersonId: 'SALES-102', client: 'Cabinet Dentaire Benmoussa', pack: 'Pack Dentaire & TV', date: '2026-07-18', amountHT: 40000, rate: '5%', commissionVal: 2000, status: 'Payé' },
-    { dealId: 'DEAL-506', salespersonId: 'SALES-103', client: 'Cabinet Majorelle', pack: 'Pack Smart TV', date: '2026-07-22', amountHT: 16500, rate: '4%', commissionVal: 660, status: 'En Attente Payout' }
-  ],
-
-  // Live Operational Notifications Center
-  notifications: [
-    { id: 'NT-101', roleTarget: 'confirmation', message: '🔴 8 Confirmations en retard à valider dans l\'onglet Confirmations', timestamp: 'Il y a 10 min', read: false },
-    { id: 'NT-102', roleTarget: 'finance', message: '🟠 5 Paiements d\'acomptes à relancer pour débloquer les livraisons', timestamp: 'Il y a 25 min', read: false },
-    { id: 'NT-103', roleTarget: 'technician', message: '🟢 3 Installations terrain planifiées aujourd\'hui (Polyclinique du Nord, Benali)', timestamp: 'Aujourd\'hui', read: false }
-  ]
+  // Live Operational Notifications Center (Base Propre)
+  notifications: []
 };
 
 // Persistence Engine (LocalStorage)
@@ -371,6 +271,18 @@ function saveStateToLocalStorage() {
 
 function loadStateFromLocalStorage() {
   try {
+    const cleanMarker = 'nobti_clean_prod_v1';
+    const isCleaned = localStorage.getItem('nobti_crm_clean_marker');
+
+    // Purge previous test mock data if present
+    if (isCleaned !== cleanMarker) {
+      localStorage.removeItem('nobti_crm_state_v2');
+      localStorage.removeItem('nobti_crm_state');
+      localStorage.setItem('nobti_crm_clean_marker', cleanMarker);
+      saveStateToLocalStorage();
+      return;
+    }
+
     const saved = localStorage.getItem('nobti_crm_state_v2');
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -847,27 +759,26 @@ function renderEmptyState(title, subtitle, icon = 'folder-open', actionText = nu
    1. ACCUEIL (TODAY'S WORK - EXECUTION MODE)
    ========================================================================== */
 function renderDashboardView() {
-  const totalValue = state.prospects.reduce((sum, p) => sum + p.value, 0);
-  const pendingProspects = state.prospects.filter(p => p.status !== 'Gagné').length;
-  const pendingOrders = state.orders.filter(o => o.status.includes('Attente')).length;
-  const overduePayments = state.payments.filter(p => p.isOverdue).length;
+  const totalValue = state.prospects.reduce((sum, p) => sum + (Number(p.value) || 0), 0);
+  const pendingCalls = state.prospects.filter(p => p.status === 'À Contacter' || p.status === 'Qualifié').length;
+  const pendingConfirmations = state.orders.filter(o => o.status && o.status.includes('Attente')).length;
+  const overduePayments = state.payments.filter(p => p.balanceRemaining > 0).length;
   const todayInstallations = state.installations.filter(i => i.stage !== 'Terminé & Validé').length;
 
-  // Calculate daily progress (completed / total tasks)
-  const totalTasks = 8 + 5 + (overduePayments || 3) + todayInstallations;
-  const completedTasks = Math.round(totalTasks * 0.35); // simulated progress
-  const progressPct = Math.round((completedTasks / totalTasks) * 100);
+  const totalTasks = pendingCalls + pendingConfirmations + overduePayments + todayInstallations;
+  const completedTasks = state.installations.filter(i => i.stage === 'Terminé & Validé').length;
+  const progressPct = totalTasks > 0 ? Math.round((completedTasks / (completedTasks + totalTasks)) * 100) : 100;
 
   const taskRows = [
-    { icon: '📞', label: 'Appels à effectuer', count: 8, color: '#2563EB', bg: '#EFF6FF', view: 'sales', toast: 'Liste des appels prospects' },
-    { icon: '💬', label: 'Confirmations WhatsApp', count: 5, color: '#7C3AED', bg: '#F5F3FF', view: 'confirmations', toast: 'Confirmations en attente' },
-    { icon: '💰', label: 'Paiements à relancer', count: overduePayments || 3, color: '#F59E0B', bg: '#FFFBEB', view: 'finance', toast: 'Paiements en retard' },
-    { icon: '🚚', label: 'Installations aujourd\'hui', count: todayInstallations, color: '#16A34A', bg: '#F0FDF4', view: 'operations', toast: 'Installations planifiées' },
+    { icon: '📞', label: 'Appels prospects à effectuer', count: pendingCalls, color: '#2563EB', bg: '#EFF6FF', view: 'sales', toast: 'Liste des prospects' },
+    { icon: '💬', label: 'Confirmations de commandes', count: pendingConfirmations, color: '#7C3AED', bg: '#F5F3FF', view: 'confirmations', toast: 'Confirmations en attente' },
+    { icon: '💰', label: 'Paiements & soldes à encaisser', count: overduePayments, color: '#F59E0B', bg: '#FFFBEB', view: 'finance', toast: 'Suivi des paiements' },
+    { icon: '🚚', label: 'Installations terrain à valider', count: todayInstallations, color: '#16A34A', bg: '#F0FDF4', view: 'operations', toast: 'Installations planifiées' },
   ];
 
   const todayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
   const formattedToday = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
-  const currentUserName = state.currentUser?.name?.split(' ')[0] || 'Youssef';
+  const currentUserName = state.currentUser?.name?.split(' ')[0] || 'Admin';
 
   return `
     <!-- Header -->
@@ -877,7 +788,7 @@ function renderDashboardView() {
         <p style="color:#64748B; font-size:0.82rem;">${formattedToday} — Bonjour ${currentUserName} !</p>
       </div>
       <div style="display:flex; align-items:center; gap:0.5rem;">
-        <span style="font-size:0.78rem; font-weight:700; color:${progressPct >= 70 ? '#16A34A' : '#F59E0B'};">${completedTasks}/${totalTasks} terminées</span>
+        <span style="font-size:0.78rem; font-weight:700; color:${progressPct >= 70 ? '#16A34A' : '#F59E0B'};">${completedTasks}/${completedTasks + totalTasks} terminées</span>
         <span style="font-size:0.78rem; color:#94A3B8;">${progressPct}%</span>
       </div>
     </div>
@@ -910,49 +821,25 @@ function renderDashboardView() {
 
     <!-- Today's Timeline Schedule -->
     <div class="todays-work-block">
-      <div style="font-size:0.82rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.65rem;">📅 Timeline du jour</div>
-      <div class="day-timeline">
-        <div class="timeline-entry done">
-          <div class="tl-time">08:30</div>
-          <div class="tl-dot done"></div>
-          <div class="tl-content">
-            <div class="tl-title">📞 Appel Dr. Karim Benali</div>
-            <div class="tl-sub">Clinique Al Mansour — Relance Pack Dentaire</div>
-          </div>
+      <div style="font-size:0.82rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.65rem;">📅 Planning & Actions Récentes</div>
+      ${state.installations.length === 0 && state.prospects.length === 0 ? `
+        <div style="text-align:center; padding:1.75rem 1rem; color:#64748B; font-size:0.85rem;">
+          ✨ Base prête & propre. Importez votre fichier <strong>Google Sheets</strong> ou ajoutez un prospect pour démarrer votre planning.
         </div>
-        <div class="timeline-entry done">
-          <div class="tl-time">09:00</div>
-          <div class="tl-dot done"></div>
-          <div class="tl-content">
-            <div class="tl-title">💬 WhatsApp Dr. Fatima Zahra</div>
-            <div class="tl-sub">Centre Radiologie — Confirmation devis QT-2026-88</div>
-          </div>
+      ` : `
+        <div class="day-timeline">
+          ${state.prospects.slice(0, 3).map((p, idx) => `
+            <div class="timeline-entry ${idx === 0 ? 'active' : ''}">
+              <div class="tl-time">Rappel</div>
+              <div class="tl-dot ${idx === 0 ? 'active' : ''}"></div>
+              <div class="tl-content">
+                <div class="tl-title">📞 ${p.clinic} (${p.name})</div>
+                <div class="tl-sub">${p.city} — ${p.pack} — ${p.status}</div>
+              </div>
+            </div>
+          `).join('')}
         </div>
-        <div class="timeline-entry active">
-          <div class="tl-time">09:45</div>
-          <div class="tl-dot active"></div>
-          <div class="tl-content">
-            <div class="tl-title">📋 Rappel — Hind Berrada</div>
-            <div class="tl-sub">Cabinet Majorelle — Suivi Smart TV</div>
-          </div>
-        </div>
-        <div class="timeline-entry">
-          <div class="tl-time">11:00</div>
-          <div class="tl-dot"></div>
-          <div class="tl-content">
-            <div class="tl-title">🚚 Installation Polyclinique du Nord</div>
-            <div class="tl-sub">Tanger — Système Enterprise 5 Étages — Mehdi Tazi</div>
-          </div>
-        </div>
-        <div class="timeline-entry">
-          <div class="tl-time">14:30</div>
-          <div class="tl-dot"></div>
-          <div class="tl-content">
-            <div class="tl-title">💰 Relance Paiement Al Mansour</div>
-            <div class="tl-sub">29 400 MAD en attente — ORD-8822</div>
-          </div>
-        </div>
-      </div>
+      `}
     </div>
 
     <!-- KPI Summary Cards (2 per row on mobile) -->
@@ -1057,71 +944,95 @@ function renderSalesView() {
     </div>
 
     ${state.salesSubTab === 'prospects' ? `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Clinique / Médecin</th>
-              <th>Ville</th>
-              <th>Pack Solution</th>
-              <th>Statut</th>
-              <th>Valeur (MAD)</th>
-              <th style="text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.prospects.slice(0, 100).map(p => `
-              <tr>
-                <td style="cursor:pointer;" onclick="openProspectDrawer('${p.id}')">
-                  <div style="font-weight:700; color:#2563EB;">${p.clinic}</div>
-                  <div style="font-size:0.78rem; color:#64748B;">${p.name} • ${p.phone}</div>
-                </td>
-                <td>${p.city}</td>
-                <td>${p.pack}</td>
-                <td><span class="badge ${p.status === 'Gagné' ? 'badge-green' : 'badge-blue'}">${p.status}</span></td>
-                <td style="font-weight:700;">${p.value.toLocaleString()} MAD</td>
-                <td style="text-align:right;">
-                  <button class="btn btn-secondary btn-sm" onclick="openProspectDrawer('${p.id}')"><i data-lucide="eye"></i> Voir Détails</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        ${state.prospects.length > 100 ? `
-          <div style="text-align:center; padding:0.75rem; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:0.8rem; color:#64748B; font-weight:600;">
-            ⚡ Affichage des 100 premiers prospects sur ${state.prospects.length.toLocaleString()} au total (Optimisé pour la vitesse 60 FPS)
+      ${state.prospects.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">📋</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Base de Prospects Propre & Prête</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:480px; margin:0 auto 1.5rem auto; line-height:1.45;">
+            Toutes les données de test ont été vidées. Vous pouvez dès maintenant importer votre fichier <strong>Google Sheets ("Nobti CRM")</strong> ou créer un nouveau prospect.
+          </p>
+          <div style="display:flex; justify-content:center; gap:0.65rem; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openNewLeadModal()"><i data-lucide="plus"></i> + Nouveau Prospect</button>
+            <button class="btn btn-secondary" style="border:1px solid #16A34A; color:#16A34A; font-weight:700;" onclick="openGoogleSheetsImportModal()"><i data-lucide="file-spreadsheet"></i> 📋 Importer Google Sheets</button>
           </div>
-        ` : ''}
-      </div>
-    ` : state.salesSubTab === 'quotes' ? `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Réf Devis</th>
-              <th>Client Clinique</th>
-              <th>Pack Solution</th>
-              <th>Total TTC</th>
-              <th>Statut</th>
-              <th style="text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.quotes.map(q => `
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td style="font-family:monospace; font-weight:600;">${q.id}</td>
-                <td style="font-weight:700;">${q.client}</td>
-                <td>${q.pack}</td>
-                <td style="font-weight:800; color:#2563EB;">${q.totalTTC.toLocaleString()} MAD</td>
-                <td><span class="badge badge-green">${q.status}</span></td>
-                <td style="text-align:right;">
-                  <button class="btn btn-secondary btn-sm" onclick="openQuoteModal('${q.id}')"><i data-lucide="file-text"></i> Devis PDF</button>
-                </td>
+                <th>Clinique / Médecin</th>
+                <th>Ville</th>
+                <th>Pack Solution</th>
+                <th>Statut</th>
+                <th>Valeur (MAD)</th>
+                <th style="text-align:right;">Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              ${state.prospects.slice(0, 100).map(p => `
+                <tr>
+                  <td style="cursor:pointer;" onclick="openProspectDrawer('${p.id}')">
+                    <div style="font-weight:700; color:#2563EB;">${p.clinic}</div>
+                    <div style="font-size:0.78rem; color:#64748B;">${p.name} • ${p.phone}</div>
+                  </td>
+                  <td>${p.city}</td>
+                  <td>${p.pack}</td>
+                  <td><span class="badge ${p.status === 'Gagné' ? 'badge-green' : 'badge-blue'}">${p.status}</span></td>
+                  <td style="font-weight:700;">${p.value.toLocaleString()} MAD</td>
+                  <td style="text-align:right;">
+                    <button class="btn btn-secondary btn-sm" onclick="openProspectDrawer('${p.id}')"><i data-lucide="eye"></i> Voir Détails</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${state.prospects.length > 100 ? `
+            <div style="text-align:center; padding:0.75rem; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:0.8rem; color:#64748B; font-weight:600;">
+              ⚡ Affichage des 100 premiers prospects sur ${state.prospects.length.toLocaleString()} au total (Optimisé pour la vitesse 60 FPS)
+            </div>
+          ` : ''}
+        </div>
+      `}
+    ` : state.salesSubTab === 'quotes' ? `
+      ${state.quotes.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">📄</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Aucun Devis Transmis</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:440px; margin:0 auto 1.25rem auto;">
+            Créez votre premier devis officiel avec calcul automatique HT / TTC et génération PDF.
+          </p>
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Réf Devis</th>
+                <th>Client Clinique</th>
+                <th>Pack Solution</th>
+                <th>Total TTC</th>
+                <th>Statut</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.quotes.map(q => `
+                <tr>
+                  <td style="font-family:monospace; font-weight:600;">${q.id}</td>
+                  <td style="font-weight:700;">${q.client}</td>
+                  <td>${q.pack}</td>
+                  <td style="font-weight:800; color:#2563EB;">${q.totalTTC.toLocaleString()} MAD</td>
+                  <td><span class="badge badge-green">${q.status}</span></td>
+                  <td style="text-align:right;">
+                    <button class="btn btn-secondary btn-sm" onclick="openQuoteModal('${q.id}')"><i data-lucide="file-text"></i> Devis PDF</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
     ` : state.salesSubTab === 'confirmations' ? `
       ${renderConfirmationsContent()}
     ` : `
@@ -1352,80 +1263,99 @@ function renderOperationsView() {
     </div>
 
     ${state.opsSubTab === 'orders' ? `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Réf Commande</th>
-              <th>Client Clinique</th>
-              <th>Pack Matériel</th>
-              <th>Étape du Workflow Pipeline</th>
-              <th>Acompte</th>
-              <th style="text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.orders.map(o => `
+      ${state.orders.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">📦</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Aucune Commande en Cours</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:440px; margin:0 auto 1.25rem auto;">
+            Les commandes confirmées par les commerciaux ou importées apparaîtront ici pour le suivi de préparation et confirmation.
+          </p>
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td style="font-family:monospace; font-weight:700;">${o.id}</td>
-                <td>
-                  <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${o.client}</div>
-                  <div style="font-size:0.75rem; color:#64748B;">${o.doctor} • ${o.city}</div>
-                </td>
-                <td style="font-weight:600; font-size:0.82rem;">${o.packName}</td>
-                <td>
-                  <div style="display:flex; align-items:center; gap:0.3rem; font-size:0.75rem;">
-                    <span class="badge ${o.status === 'Confirmé' ? 'badge-success-green' : 'badge-waiting-amber'}">${o.status === 'Confirmé' ? '✓ Préparation' : '⏳ Attente Acompte'}</span>
-                    <span style="color:#94A3B8;">➔</span>
-                    <span style="color:#94A3B8; font-size:0.72rem;">Livraison</span>
-                    <span style="color:#94A3B8;">➔</span>
-                    <span style="color:#94A3B8; font-size:0.72rem;">Installation</span>
-                  </div>
-                </td>
-                <td><span class="badge ${o.paymentStatus.includes('Vérifié') ? 'badge-success-green' : 'badge-waiting-amber'}">${o.paymentStatus}</span></td>
-                <td style="text-align:right;">
-                  ${o.status === 'Confirmé' ? 
-                    '<button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Confirmé</button>' : 
-                    `<button class="btn btn-success btn-sm" onclick="confirmOrderAction('${o.id}')"><i data-lucide="check"></i> Confirmer Acompte</button>`
-                  }
-                </td>
+                <th>Réf Commande</th>
+                <th>Client Clinique</th>
+                <th>Pack Solution</th>
+                <th>Workflow Statut</th>
+                <th>Statut Paiement</th>
+                <th style="text-align:right;">Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              ${state.orders.map(o => `
+                <tr>
+                  <td style="font-family:monospace; font-weight:700;">${o.id}</td>
+                  <td>
+                    <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${o.client}</div>
+                    <div style="font-size:0.75rem; color:#64748B;">${o.doctor} • ${o.city}</div>
+                  </td>
+                  <td style="font-weight:600; font-size:0.82rem;">${o.packName}</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.3rem; font-size:0.75rem;">
+                      <span class="badge ${o.status === 'Confirmé' ? 'badge-success-green' : 'badge-waiting-amber'}">${o.status === 'Confirmé' ? '✓ Préparation' : '⏳ Attente Acompte'}</span>
+                      <span style="color:#94A3B8;">➔</span>
+                      <span style="color:#94A3B8; font-size:0.72rem;">Livraison</span>
+                      <span style="color:#94A3B8;">➔</span>
+                      <span style="color:#94A3B8; font-size:0.72rem;">Installation</span>
+                    </div>
+                  </td>
+                  <td><span class="badge ${o.paymentStatus.includes('Vérifié') ? 'badge-success-green' : 'badge-waiting-amber'}">${o.paymentStatus}</span></td>
+                  <td style="text-align:right;">
+                    ${o.status === 'Confirmé' ? 
+                      '<button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Confirmé</button>' : 
+                      `<button class="btn btn-success btn-sm" onclick="confirmOrderAction('${o.id}')"><i data-lucide="check"></i> Confirmer Acompte</button>`
+                    }
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
     ` : `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Réf Intervention</th>
-              <th>Client Clinique</th>
-              <th>Technicien Attribué</th>
-              <th>Date Prévue</th>
-              <th>Statut Installation</th>
-              <th style="text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.installations.map(inst => `
+      ${state.installations.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">🔧</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Aucune Intervention Technique Planifiée</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:440px; margin:0 auto 1.25rem auto;">
+            Les installations terrain validées après confirmation d'acompte apparaîtront directement dans ce planning.
+          </p>
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td style="font-family:monospace; font-weight:700;">${inst.id}</td>
-                <td>
-                  <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${inst.client}</div>
-                  <div style="font-size:0.75rem; color:#64748B;">${inst.doctor} • ${inst.city}</div>
-                </td>
-                <td><span class="badge badge-action-blue">${inst.technician}</span></td>
-                <td style="font-weight:600; font-size:0.82rem;">${inst.date}</td>
-                <td><span class="badge ${inst.stage === 'Terminé & Validé' ? 'badge-success-green' : 'badge-waiting-amber'}">${inst.stage}</span></td>
-                <td style="text-align:right;">
-                  <button class="btn btn-primary btn-sm" onclick="openPVModal('${inst.id}')"><i data-lucide="file-check"></i> Fiche & PV</button>
-                </td>
+                <th>Réf Intervention</th>
+                <th>Client Clinique</th>
+                <th>Technicien Attribué</th>
+                <th>Date Prévue</th>
+                <th>Statut Installation</th>
+                <th style="text-align:right;">Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              ${state.installations.map(inst => `
+                <tr>
+                  <td style="font-family:monospace; font-weight:700;">${inst.id}</td>
+                  <td>
+                    <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${inst.client}</div>
+                    <div style="font-size:0.75rem; color:#64748B;">${inst.doctor} • ${inst.city}</div>
+                  </td>
+                  <td><span class="badge badge-action-blue">${inst.technician}</span></td>
+                  <td style="font-weight:600; font-size:0.82rem;">${inst.date}</td>
+                  <td><span class="badge ${inst.stage === 'Terminé & Validé' ? 'badge-success-green' : 'badge-waiting-amber'}">${inst.stage}</span></td>
+                  <td style="text-align:right;">
+                    <button class="btn btn-primary btn-sm" onclick="openPVModal('${inst.id}')"><i data-lucide="file-check"></i> Fiche & PV</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
     `}
   `;
 }
@@ -1774,69 +1704,89 @@ function renderFinanceView() {
     </div>
 
     ${state.financeSubTab === 'invoices' ? `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>N° Facture</th>
-              <th>Client Clinique</th>
-              <th>Montant Payé</th>
-              <th>Solde Restant</th>
-              <th>Statut Recouvrement</th>
-              <th style="text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.payments.map(p => `
+      ${state.payments.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">💰</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Aucune Facture en Recouvrement</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:440px; margin:0 auto 1.25rem auto;">
+            Les règlements d'acomptes et soldes de commandes apparaîtront ici pour le suivi de trésorerie et relances.
+          </p>
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td style="font-family:monospace; font-weight:700;">${p.invoiceNo}</td>
-                <td>
-                  <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${p.client}</div>
-                  <div style="font-size:0.75rem; color:#64748B;">Réf Commande: ${p.orderId}</div>
-                </td>
-                <td style="font-weight:700; color:#16A34A;">${p.amountPaid.toLocaleString()} MAD</td>
-                <td style="font-weight:800; color:${p.balanceRemaining > 0 ? '#EF4444' : '#64748B'};">${p.balanceRemaining.toLocaleString()} MAD</td>
-                <td>${p.isOverdue ? '<span class="badge badge-urgent-red">🔴 EN RETARD</span>' : p.balanceRemaining === 0 ? '<span class="badge badge-success-green">✓ Reglé 100%</span>' : '<span class="badge badge-action-blue">Acompte Reçu</span>'}</td>
-                <td style="text-align:right;">
-                  <div style="display:inline-flex; gap:0.3rem;">
-                    ${p.balanceRemaining > 0 ? `
-                      <button class="btn btn-success btn-sm" onclick="openRecordPaymentModal('${p.invoiceNo}')" title="Encaisser le solde"><i data-lucide="dollar-sign"></i> Encaisser</button>
-                      <button class="btn btn-secondary btn-sm" onclick="triggerCall('${p.client}')" title="Relancer par téléphone"><i data-lucide="phone"></i></button>
-                    ` : `
-                      <button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Reglé</button>
-                    `}
-                  </div>
-                </td>
+                <th>N° Facture</th>
+                <th>Client Clinique</th>
+                <th>Montant Payé</th>
+                <th>Solde Restant</th>
+                <th>Statut Recouvrement</th>
+                <th style="text-align:right;">Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              ${state.payments.map(p => `
+                <tr>
+                  <td style="font-family:monospace; font-weight:700;">${p.invoiceNo}</td>
+                  <td>
+                    <div style="font-weight:800; font-size:0.92rem; color:#1F2937;">${p.client}</div>
+                    <div style="font-size:0.75rem; color:#64748B;">Réf Commande: ${p.orderId}</div>
+                  </td>
+                  <td style="font-weight:700; color:#16A34A;">${p.amountPaid.toLocaleString()} MAD</td>
+                  <td style="font-weight:800; color:${p.balanceRemaining > 0 ? '#EF4444' : '#64748B'};">${p.balanceRemaining.toLocaleString()} MAD</td>
+                  <td>${p.isOverdue ? '<span class="badge badge-urgent-red">🔴 EN RETARD</span>' : p.balanceRemaining === 0 ? '<span class="badge badge-success-green">✓ Reglé 100%</span>' : '<span class="badge badge-action-blue">Acompte Reçu</span>'}</td>
+                  <td style="text-align:right;">
+                    <div style="display:inline-flex; gap:0.3rem;">
+                      ${p.balanceRemaining > 0 ? `
+                        <button class="btn btn-success btn-sm" onclick="openRecordPaymentModal('${p.invoiceNo}')" title="Encaisser le solde"><i data-lucide="dollar-sign"></i> Encaisser</button>
+                        <button class="btn btn-secondary btn-sm" onclick="triggerCall('${p.client}')" title="Relancer par téléphone"><i data-lucide="phone"></i></button>
+                      ` : `
+                        <button class="btn btn-secondary btn-sm" disabled><i data-lucide="check"></i> Reglé</button>
+                      `}
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
     ` : `
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Réf Ticket</th>
-              <th>Client Clinique</th>
-              <th>Incident</th>
-              <th>AnyDesk ID</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.supportTickets.map(t => `
+      ${state.supportTickets.length === 0 ? `
+        <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+          <div style="font-size:2.6rem; margin-bottom:0.6rem;">🎧</div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Aucun Ticket Support en Cours</h3>
+          <p style="font-size:0.85rem; color:#64748B; max-width:440px; margin:0 auto 1.25rem auto;">
+            Les demandes de support et maintenance client apparaîtront ici.
+          </p>
+        </div>
+      ` : `
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td style="font-family:monospace; font-weight:600;">${t.id}</td>
-                <td style="font-weight:700;">${t.client}</td>
-                <td>${t.type}</td>
-                <td style="font-family:monospace; color:#2563EB;">${t.anydeskId}</td>
-                <td><span class="badge ${t.status === 'Résolu' ? 'badge-green' : 'badge-amber'}">${t.status}</span></td>
+                <th>Réf Ticket</th>
+                <th>Client Clinique</th>
+                <th>Incident</th>
+                <th>AnyDesk ID</th>
+                <th>Statut</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              ${state.supportTickets.map(t => `
+                <tr>
+                  <td style="font-family:monospace; font-weight:600;">${t.id}</td>
+                  <td style="font-weight:700;">${t.client}</td>
+                  <td>${t.type}</td>
+                  <td style="font-family:monospace; color:#2563EB;">${t.anydeskId}</td>
+                  <td><span class="badge ${t.status === 'Résolu' ? 'badge-green' : 'badge-amber'}">${t.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
     `}
   `;
 }
@@ -3953,56 +3903,70 @@ function renderClientsView() {
       </div>
     </div>
 
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Établissement & Contact</th>
-            <th>Téléphone & WhatsApp</th>
-            <th>Ville & Adresse GPS</th>
-            <th>Pack Installé</th>
-            <th>Statut</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${state.clients.map(c => `
+    ${state.clients.length === 0 ? `
+      <div style="text-align:center; padding:3.5rem 1.5rem; background:white; border-radius:12px; border:1px dashed #CBD5E1; margin-top:0.5rem;">
+        <div style="font-size:2.6rem; margin-bottom:0.6rem;">👥</div>
+        <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; margin-bottom:0.4rem;">Répertoire Clients Propre & Vide</h3>
+        <p style="font-size:0.85rem; color:#64748B; max-width:480px; margin:0 auto 1.5rem auto; line-height:1.45;">
+          Toutes les données de test ont été purgées. Ajoutez vos vrais clients manuellement ou importez votre fichier <strong>Google Sheets</strong> directement.
+        </p>
+        <div style="display:flex; justify-content:center; gap:0.65rem; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="openNewClientModal()"><i data-lucide="user-plus"></i> + Nouveau Client</button>
+          <button class="btn btn-secondary" style="border:1px solid #16A34A; color:#16A34A; font-weight:700;" onclick="openGoogleSheetsImportModal()"><i data-lucide="file-spreadsheet"></i> 📋 Importer Google Sheets</button>
+        </div>
+      </div>
+    ` : `
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td>
-                <div style="font-weight:800; font-size:0.95rem; color:#1F2937;">${c.establishment}</div>
-                <div style="font-size:0.8rem; color:#2563EB; font-weight:600;">${c.contactName}</div>
-                <div style="font-size:0.72rem; color:#64748B;">${c.id} • ${c.email}</div>
-              </td>
-              <td>
-                <div style="font-weight:700; color:#1F2937;">${c.phone}</div>
-                <div style="display:flex; gap:0.3rem; margin-top:0.25rem;">
-                  <button class="btn btn-secondary btn-sm" style="padding:0.15rem 0.4rem; font-size:0.72rem;" onclick="triggerCall('${c.phone}')"><i data-lucide="phone" style="width:11px;"></i> Appeler</button>
-                  <button class="btn btn-success btn-sm" style="padding:0.15rem 0.4rem; font-size:0.72rem;" onclick="triggerWhatsApp('${c.phone}')"><i data-lucide="message-square" style="width:11px;"></i> WhatsApp</button>
-                </div>
-              </td>
-              <td>
-                <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">${c.city}</div>
-                <div style="font-size:0.75rem; color:#64748B;">${c.address}</div>
-                <a href="${c.mapsUrl}" target="_blank" style="font-size:0.75rem; color:#2563EB; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.2rem; margin-top:0.2rem;">
-                  <i data-lucide="map-pin" style="width:12px;"></i> Google Maps ↗
-                </a>
-              </td>
-              <td style="font-size:0.82rem; font-weight:600;">${c.packInstalled}</td>
-              <td><span class="badge ${c.status === 'Client VIP' ? 'badge-purple' : c.status === 'Sous Garantie' ? 'badge-green' : 'badge-blue'}">${c.status}</span></td>
-              <td style="text-align:right;">
-                <div style="display:inline-flex; gap:0.3rem; align-items:center;">
-                  <button class="btn btn-secondary btn-sm" onclick="openClientDetailsModal('${c.id}')" title="Voir Fiche Client"><i data-lucide="file-text"></i> Fiche</button>
-                  ${isSuperAdmin ? `
-                    <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" title="Modifier le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="edit"></i> Modifier</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')" title="Supprimer le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="trash-2"></i></button>
-                  ` : ''}
-                </div>
-              </td>
+              <th>Établissement & Contact</th>
+              <th>Téléphone & WhatsApp</th>
+              <th>Ville & Adresse GPS</th>
+              <th>Pack Installé</th>
+              <th>Statut</th>
+              <th style="text-align:right;">Actions</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            ${state.clients.map(c => `
+              <tr>
+                <td>
+                  <div style="font-weight:800; font-size:0.95rem; color:#1F2937;">${c.establishment}</div>
+                  <div style="font-size:0.8rem; color:#2563EB; font-weight:600;">${c.contactName}</div>
+                  <div style="font-size:0.72rem; color:#64748B;">${c.id} • ${c.email}</div>
+                </td>
+                <td>
+                  <div style="font-weight:700; color:#1F2937;">${c.phone}</div>
+                  <div style="display:flex; gap:0.3rem; margin-top:0.25rem;">
+                    <button class="btn btn-secondary btn-sm" style="padding:0.15rem 0.4rem; font-size:0.72rem;" onclick="triggerCall('${c.phone}')"><i data-lucide="phone" style="width:11px;"></i> Appeler</button>
+                    <button class="btn btn-success btn-sm" style="padding:0.15rem 0.4rem; font-size:0.72rem;" onclick="triggerWhatsApp('${c.phone}')"><i data-lucide="message-square" style="width:11px;"></i> WhatsApp</button>
+                  </div>
+                </td>
+                <td>
+                  <div style="font-size:0.85rem; font-weight:700; color:#1F2937;">${c.city}</div>
+                  <div style="font-size:0.75rem; color:#64748B;">${c.address}</div>
+                  <a href="${c.mapsUrl}" target="_blank" style="font-size:0.75rem; color:#2563EB; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.2rem; margin-top:0.2rem;">
+                    <i data-lucide="map-pin" style="width:12px;"></i> Google Maps ↗
+                  </a>
+                </td>
+                <td style="font-size:0.82rem; font-weight:600;">${c.packInstalled}</td>
+                <td><span class="badge ${c.status === 'Client VIP' ? 'badge-purple' : c.status === 'Sous Garantie' ? 'badge-green' : 'badge-blue'}">${c.status}</span></td>
+                <td style="text-align:right;">
+                  <div style="display:inline-flex; gap:0.3rem; align-items:center;">
+                    <button class="btn btn-secondary btn-sm" onclick="openClientDetailsModal('${c.id}')" title="Voir Fiche Client"><i data-lucide="file-text"></i> Fiche</button>
+                    ${isSuperAdmin ? `
+                      <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" title="Modifier le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="edit"></i> Modifier</button>
+                      <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')" title="Supprimer le Client (Super Admin)" style="padding:0.2rem 0.45rem; font-size:0.75rem;"><i data-lucide="trash-2"></i></button>
+                    ` : ''}
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `}
   `;
 }
 
