@@ -1,5 +1,6 @@
 import * as ftp from "basic-ftp";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -7,8 +8,8 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, "..");
 
 async function deployToHostinger() {
-  const client = new ftp.Client(15000);
-  client.ftp.verbose = true;
+  const client = new ftp.Client(20000);
+  client.ftp.verbose = false;
 
   try {
     console.log("🚀 CONNEXION ET DÉPLOIEMENT AUTOMATIQUE VERS HOSTINGER CLOUD...");
@@ -24,17 +25,10 @@ async function deployToHostinger() {
       secure: false
     });
 
-    console.log("✔ Connecté au serveur Hostinger.");
-    try {
-      await client.cd("/public_html");
-    } catch (_) {
-      console.log("  (Répertoire racine déjà positionné sur public_html)");
-    }
+    console.log("✔ Connecté au serveur Hostinger avec succès.");
 
-    console.log("📤 Synchronisation des fichiers applicatifs vers Hostinger...");
-
-    // Upload core frontend files
-    const coreFiles = [
+    // Core static files to upload at root
+    const rootFiles = [
       "index.html",
       "styles.css",
       "app.js",
@@ -50,40 +44,68 @@ async function deployToHostinger() {
       "icon-512.png"
     ];
 
-    await client.cd("/");
-    for (const file of coreFiles) {
+    console.log("📤 Synchronisation des fichiers racine...");
+    for (const file of rootFiles) {
       const localPath = path.join(projectRoot, file);
-      try {
-        await client.uploadFrom(localPath, file);
-        console.log(`  ✔ Fichier synchronisé : ${file}`);
-      } catch (err) {
-        console.warn(`  ⚠️ Impossible de téléverser ${file}: ${err.message}`);
+      if (fs.existsSync(localPath)) {
+        try {
+          await client.uploadFrom(localPath, file);
+          console.log(`  ✔ Fichier synchronisé : ${file}`);
+        } catch (err) {
+          console.warn(`  ⚠️ Impossible de téléverser ${file}: ${err.message}`);
+        }
       }
     }
 
-    // Upload backend core files (Fast upload excluding node_modules)
-    console.log("📤 Synchronisation rapide du dossier /backend/src...");
+    // Helper for recursive file uploads
+    async function syncDirectory(localDirPath, remoteDirPath) {
+      if (!fs.existsSync(localDirPath)) return;
+      await client.ensureDir(remoteDirPath);
+      const entries = fs.readdirSync(localDirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.name === "node_modules" || entry.name === ".git" || entry.name.startsWith("tmp")) continue;
+        const localPath = path.join(localDirPath, entry.name);
+        const remotePath = `${remoteDirPath}/${entry.name}`.replace(/^\/+/, "");
+
+        if (entry.isDirectory()) {
+          await syncDirectory(localPath, remotePath);
+        } else {
+          try {
+            await client.uploadFrom(localPath, entry.name);
+            console.log(`  ✔ Synchronisé : ${remotePath}`);
+          } catch (e) {
+            console.warn(`  ⚠️ Erreur téléversement ${remotePath}:`, e.message);
+          }
+        }
+      }
+    }
+
+    // Sync backend files (excluding node_modules)
+    console.log("📤 Synchronisation du dossier /backend/src...");
     await client.cd("/");
     await client.ensureDir("backend");
-    const backendFiles = ["package.json", "package-lock.json"];
-    for (const bf of backendFiles) {
-      try {
-        await client.uploadFrom(path.join(projectRoot, "backend", bf), bf);
-      } catch (_) {}
+    for (const bf of ["package.json", "package-lock.json"]) {
+      const bfp = path.join(projectRoot, "backend", bf);
+      if (fs.existsSync(bfp)) {
+        await client.uploadFrom(bfp, bf);
+      }
     }
-    await client.ensureDir("src");
-    await client.uploadFromDir(path.join(projectRoot, "backend", "src"));
+    await syncDirectory(path.join(projectRoot, "backend", "src"), "/backend/src");
 
-    // Upload scripts directory
+    // Sync scripts
+    console.log("📤 Synchronisation du dossier /scripts...");
     await client.cd("/");
     await client.ensureDir("scripts");
-    await client.uploadFrom(path.join(projectRoot, "scripts", "init_hostinger_db.sql"), "init_hostinger_db.sql");
+    const scriptSql = path.join(projectRoot, "scripts", "init_hostinger_db.sql");
+    if (fs.existsSync(scriptSql)) {
+      await client.uploadFrom(scriptSql, "init_hostinger_db.sql");
+    }
 
-    // Upload prisma directory
+    // Sync prisma
     console.log("📤 Synchronisation du dossier /prisma...");
     await client.cd("/");
-    await client.ensureDir("prisma");
-    await client.uploadFromDir(path.join(projectRoot, "prisma"));
+    await syncDirectory(path.join(projectRoot, "prisma"), "/prisma");
 
     console.log("\n✅ DÉPLOIEMENT AUTOMATIQUE HOSTINGER RÉUSSI À 100% !");
     console.log("🌐 URL de Production : https://tassnimproduct.shop/");
