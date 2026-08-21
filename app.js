@@ -602,19 +602,27 @@ function toggleSpeedDial() {
   if (fab) fab.classList.toggle('active');
 }
 
+let _lucideTimer = null;
 function safeCreateIcons() {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    try { window.lucide.createIcons(); } catch (e) { console.warn('Lucide icons error', e); }
-  } else {
+    if (_lucideTimer) { clearInterval(_lucideTimer); _lucideTimer = null; }
+    try {
+      window.lucide.createIcons();
+    } catch (_) {}
+  } else if (!_lucideTimer) {
     let retries = 0;
-    const interval = setInterval(() => {
+    _lucideTimer = setInterval(() => {
       retries++;
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        try { window.lucide.createIcons(); } catch (e) {}
-        clearInterval(interval);
+        try { window.lucide.createIcons(); } catch (_) {}
+        clearInterval(_lucideTimer);
+        _lucideTimer = null;
       }
-      if (retries > 10) clearInterval(interval);
-    }, 150);
+      if (retries > 10) {
+        clearInterval(_lucideTimer);
+        _lucideTimer = null;
+      }
+    }, 80);
   }
 }
 
@@ -629,25 +637,22 @@ function switchView(viewName) {
     state.activeView = viewName;
   }
 
-  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => {
-    if (el.getAttribute('data-view') === viewName || (state.activeView === 'sales' && el.getAttribute('data-view') === 'sales')) {
+  const items = document.querySelectorAll('.nav-item, .mobile-nav-item');
+  for (let i = 0; i < items.length; i++) {
+    const el = items[i];
+    const target = el.getAttribute('data-view');
+    if (target === viewName || (state.activeView === 'sales' && target === 'sales')) {
       el.classList.add('active');
     } else {
       el.classList.remove('active');
     }
-  });
+  }
 
-  // Auto-hide/collapse sidebar menu on selection (if not pinned)
+  // Auto-hide mobile drawer if open
   const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
+  if (sidebar && sidebar.classList.contains('mobile-open')) {
     sidebar.classList.remove('mobile-open');
     state.mobileMenuOpen = false;
-
-    // PC Desktop Auto-collapse when unpinned
-    if (!state.sidebarPinned && window.innerWidth > 768) {
-      sidebar.classList.add('collapsed');
-      state.sidebarCollapsed = true;
-    }
   }
 
   // Render view immediately
@@ -5439,7 +5444,7 @@ window.saveRecordedPayment = function(e) {
 };
 
 /* ==========================================================================
-   GOOGLE SHEETS FAST IMPORT TOOL (COPIER-COLLER DIRECT DEPUIS GOOGLE SHEETS)
+   GOOGLE SHEETS & CSV INTELLIGENT FAST IMPORT ENGINE (TABLES 1-7 NOBTI CRM)
    ========================================================================== */
 let parsedImportRows = [];
 
@@ -5449,38 +5454,48 @@ window.openGoogleSheetsImportModal = function() {
   const overlay = document.getElementById('modal-overlay');
   modal.innerHTML = `
     <div class="modal-header" style="padding:1rem 1.25rem; background:#F8FAFC;">
-      <h3 style="font-size:1.1rem; color:#1F2937;"><i data-lucide="file-spreadsheet" style="color:#16A34A;"></i> Importation Rapide Google Sheets ➔ Nobti CRM</h3>
+      <h3 style="font-size:1.1rem; color:#1F2937;"><i data-lucide="file-spreadsheet" style="color:#16A34A;"></i> Importation Google Sheets ➔ Ecom Zein OS</h3>
       <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body" style="padding:1.25rem; gap:1rem;">
       <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:0.85rem; font-size:0.82rem; color:#1E40AF; line-height:1.45;">
-        <strong>💡 Comment copier vos données depuis votre fichier Google Sheets ("Nobti CRM / SUIVI") :</strong><br>
-        1. Ouvrez votre tableau Google Sheets.<br>
-        2. Sélectionnez vos lignes (avec les colonnes : <em>Nom, Téléphone, Ville, Type, Pack, Statut, Total</em>).<br>
-        3. Faites <strong>Ctrl + C</strong> (Copier), puis collez dans la boîte ci-dessous (<strong>Ctrl + V</strong>) et cliquez sur <em>Prévisualiser</em>.
+        <strong>💡 3 Étapes Simples pour Importer votre Google Sheets ("Nobti CRM / SUIVI") :</strong><br>
+        1. Ouvrez votre tableau Google Sheets ou Excel.<br>
+        2. Sélectionnez vos lignes et faites <strong>Ctrl + C (Copier)</strong>.<br>
+        3. Collez dans la zone ci-dessous (<strong>Ctrl + V</strong>) ou choisissez un fichier <strong>CSV / Excel</strong>, puis cliquez sur <em>1. Analyser & Prévisualiser</em>.
       </div>
 
-      <div>
-        <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:0.35rem; display:block;">
-          Coller les lignes copiées depuis Google Sheets :
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <label style="font-size:0.82rem; font-weight:700; color:#334155;">
+          Coller les données copiées (Ctrl + V) :
         </label>
-        <textarea id="sheets-paste-area" class="form-input" rows="6" placeholder="Clinique Al Mansour	0661122334	Casablanca	Cabinet médical	Pack Dentaire & TV	Intéressé	24500&#10;Polyclinique du Nord	0539988776	Tanger	Hôpital	Système Enterprise	Gagné	95000&#10;Cabinet Dr Berrada	0662334455	Marrakech	Cabinet médical	Pack Smart TV	Gagné	40000" style="font-family:monospace; font-size:0.8rem; line-height:1.3;"></textarea>
+        <button type="button" class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:0.2rem 0.5rem;" onclick="pasteDemoGoogleSheetsData()">
+          📋 Coller un Exemple de Données
+        </button>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="previewPastedGoogleSheets()">
-          <i data-lucide="eye"></i> 1. Prévisualiser les Lignes
-        </button>
-        <span id="sheets-preview-count" style="font-size:0.82rem; font-weight:700; color:#2563EB;"></span>
+      <textarea id="sheets-paste-area" class="form-input" rows="6" placeholder="Clinique Al Mansour	0661122334	Casablanca	Cabinet médical	Pack Dentaire & TV	Intéressé	24500&#10;Polyclinique du Nord	0539988776	Tanger	Hôpital	Système Enterprise	Gagné	95000&#10;Centre Radiologie Anoual	0663882210	Rabat	Radiologie	Pack Borne & Ticket	Devis Envoyé	48000" style="font-family:monospace; font-size:0.8rem; line-height:1.35; width:100%;"></textarea>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="previewPastedGoogleSheets()">
+            <i data-lucide="eye"></i> 1. Analyser & Prévisualiser
+          </button>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer; margin:0;">
+            <i data-lucide="upload"></i> Charger fichier CSV / TXT
+            <input type="file" accept=".csv,.tsv,.txt" style="display:none;" onchange="handleSheetsFileUpload(event)">
+          </label>
+        </div>
+        <span id="sheets-preview-count" style="font-size:0.85rem; font-weight:800; color:#16A34A;"></span>
       </div>
 
       <!-- Preview Table Container -->
       <div id="sheets-preview-container" style="display:none; max-height:220px; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px;">
-        <table class="data-table" style="font-size:0.75rem;">
+        <table class="data-table" style="font-size:0.78rem;">
           <thead>
             <tr>
               <th>#</th>
-              <th>Établissement / Docteur</th>
+              <th>Établissement / Client</th>
               <th>Téléphone</th>
               <th>Ville</th>
               <th>Type</th>
@@ -5496,13 +5511,40 @@ window.openGoogleSheetsImportModal = function() {
     <div class="modal-footer" style="padding:0.85rem 1.25rem;">
       <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
       <button type="button" id="btn-do-import" class="btn btn-success" disabled onclick="executeGoogleSheetsImport()">
-        <i data-lucide="upload"></i> 2. Importer Définitivement dans Nobti CRM
+        <i data-lucide="check-circle"></i> 2. Importer Définitivement dans Nobti CRM
       </button>
     </div>
   `;
   overlay.classList.add('active');
   document.body.classList.add('modal-open');
-  lucide.createIcons();
+  safeCreateIcons();
+};
+
+window.handleSheetsFileUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const text = evt.target.result;
+    const textarea = document.getElementById('sheets-paste-area');
+    if (textarea) textarea.value = text;
+    previewPastedGoogleSheets();
+  };
+  reader.readAsText(file);
+};
+
+window.pasteDemoGoogleSheetsData = function() {
+  const demoText = [
+    "Clinique Al Mansour\t0661122334\tCasablanca\tCabinet dentaire\tPack Dentaire & TV\tQualifié\t24500",
+    "Polyclinique du Nord\t0539988776\tTanger\tClinique / Hôpital\tSystème Enterprise\tGagné\t95000",
+    "Centre Radiologie Anoual\t0663882210\tRabat\tCentre de radiologie\tPack Borne & Ticket\tDevis Envoyé\t48000",
+    "Cabinet Ophtalmo Majorelle\t0667339900\tCasablanca\tCabinet médical\tPack Smart TV\tÀ Contacter\t16500",
+    "Hôpital Privé Ibn Rochd\t0522445566\tCasablanca\tHôpital\tPack Enterprise Multi-Étages\tGagné\t128000"
+  ].join("\n");
+
+  const textarea = document.getElementById('sheets-paste-area');
+  if (textarea) textarea.value = demoText;
+  previewPastedGoogleSheets();
 };
 
 window.previewPastedGoogleSheets = function() {
@@ -5512,52 +5554,90 @@ window.previewPastedGoogleSheets = function() {
     return;
   }
 
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length === 0) return;
+  const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  if (rawLines.length === 0) return;
 
   parsedImportRows = [];
 
-  lines.forEach((line, idx) => {
+  rawLines.forEach((line, idx) => {
     let cols = [];
     if (line.includes('\t')) {
       cols = line.split('\t');
     } else if (line.includes(';')) {
       cols = line.split(';');
+    } else if (line.includes('|')) {
+      cols = line.split('|');
     } else {
       cols = line.split(',');
     }
 
     cols = cols.map(c => c.trim().replace(/^["']|["']$/g, ''));
 
-    // Skip header line if first column contains header keywords
-    if (idx === 0 && (cols[0].toLowerCase().includes('nom') || cols[0].toLowerCase().includes('client') || cols[0].toLowerCase().includes('date') || cols[0].toLowerCase().includes('suivi') || cols[0].toLowerCase().includes('etablissement'))) {
+    const combinedLine = cols.join(' ').toLowerCase();
+    if (idx === 0 && (combinedLine.includes('nom') || combinedLine.includes('client') || combinedLine.includes('prospect') || combinedLine.includes('téléphone') || combinedLine.includes('telephone') || combinedLine.includes('ville') || combinedLine.includes('etablissement') || combinedLine.includes('date'))) {
       return;
     }
 
-    let clinic = cols[0] || `Client Google Sheets #${idx + 1}`;
-    let phone = cols[1] || '0661000000';
-    let city = cols[2] || 'Casablanca';
-    let type = cols[3] || 'Cabinet médical';
-    let pack = cols[4] || 'Pack Dentaire & TV';
-    let status = cols[5] || 'À Contacter';
-    let value = parseFloat((cols[6] || '0').replace(/[^0-9.]/g, '')) || 24500;
+    let clinic = '';
+    let doctor = '';
+    let phone = '';
+    let city = 'Casablanca';
+    let type = 'Cabinet médical';
+    let pack = 'Pack Solution Ecom Zein';
+    let status = 'À Contacter';
+    let value = 0;
 
-    // Adjust if phone is first column
-    if (/^[0-9+ ]{8,}$/.test(cols[0]) && cols[1]) {
-      phone = cols[0];
-      clinic = cols[1];
+    const knownCities = ['casablanca', 'rabat', 'marrakech', 'tanger', 'agadir', 'fès', 'fes', 'oujda', 'kénitra', 'kenitra', 'tétouan', 'tetouan', 'salé', 'sale', 'meknès', 'meknes', 'nador', 'el jadida', 'safi', 'temara', 'mohammedia'];
+    const knownPacks = ['dentaire', 'borne', 'ticket', 'smart tv', 'enterprise', 'queue', 'pack'];
+    const knownStatuses = ['gagné', 'gagne', 'devis', 'contact', 'qualifié', 'qualifie', 'négociation', 'negociation', 'perdu', 'nouveau', 'client'];
+
+    cols.forEach(col => {
+      const lower = col.toLowerCase();
+
+      if (!phone && (/^[+]?[(]?[0-9]{2,4}[)]?[-\s.]?[0-9]{3,4}[-\s.]?[0-9]{3,6}$/.test(col) || (col.length >= 9 && col.length <= 15 && /^[0-9+ -]+$/.test(col)))) {
+        phone = col;
+      } else if (knownCities.some(c => lower.includes(c))) {
+        city = col.charAt(0).toUpperCase() + col.slice(1);
+      } else if (!value && (/^\d+([.,]\d+)?\s*(mad|dh|dhs)?$/i.test(col) || /^(mad|dh|dhs)\s*\d+/i.test(col))) {
+        const num = parseFloat(col.replace(/[^0-9.]/g, ''));
+        if (num > 0) value = num;
+      } else if (knownPacks.some(p => lower.includes(p))) {
+        pack = col;
+      } else if (knownStatuses.some(s => lower.includes(s))) {
+        if (lower.includes('gagn') || lower.includes('client')) status = 'Gagné';
+        else if (lower.includes('devis')) status = 'Devis Envoyé';
+        else if (lower.includes('qualif')) status = 'Qualifié';
+        else if (lower.includes('nego') || lower.includes('négoc')) status = 'Négociation';
+        else status = col;
+      } else if (lower.startsWith('dr') || lower.includes('docteur')) {
+        doctor = col;
+      } else if (!clinic && col.length > 2) {
+        clinic = col;
+      }
+    });
+
+    if (!clinic && cols[0]) clinic = cols[0];
+    if (!phone && cols[1]) phone = cols[1];
+    if (!value) {
+      for (const c of cols) {
+        const num = parseFloat(c.replace(/[^0-9.]/g, ''));
+        if (num && num >= 1000) { value = num; break; }
+      }
+      if (!value) value = 24500;
     }
+
+    if (!doctor) doctor = clinic.startsWith('Dr') ? clinic : `Dr. ${clinic}`;
 
     parsedImportRows.push({
       id: `IMP-${Date.now()}-${idx}`,
-      clinic,
-      name: `Dr. ${clinic}`,
-      phone,
-      city,
+      clinic: clinic,
+      name: doctor,
+      phone: phone || '0661000000',
+      city: city,
       type_etablissement: type,
-      pack,
-      status,
-      value,
+      pack: pack,
+      status: status,
+      value: value,
       total_ht: Math.round(value / 1.20),
       total_ttc: value,
       notes: `Importé depuis Google Sheets ("Nobti CRM") le ${new Date().toLocaleDateString('fr-FR')}`
@@ -5570,25 +5650,27 @@ window.previewPastedGoogleSheets = function() {
   const btnImport = document.getElementById('btn-do-import');
 
   if (parsedImportRows.length > 0) {
-    previewContainer.style.display = 'block';
-    countEl.textContent = `✔ ${parsedImportRows.length} lignes détectées avec succès`;
-    btnImport.disabled = false;
+    if (previewContainer) previewContainer.style.display = 'block';
+    if (countEl) countEl.textContent = `✔ ${parsedImportRows.length} lignes prêtes à être importées`;
+    if (btnImport) btnImport.disabled = false;
 
-    tbody.innerHTML = parsedImportRows.map((r, i) => `
-      <tr>
-        <td><strong>${i + 1}</strong></td>
-        <td style="font-weight:700; color:#1F2937;">${r.clinic}</td>
-        <td>${r.phone}</td>
-        <td>${r.city}</td>
-        <td><span class="badge badge-action-blue">${r.type_etablissement}</span></td>
-        <td>${r.pack}</td>
-        <td><span class="badge ${r.status.includes('Gagné') ? 'badge-success-green' : 'badge-waiting-amber'}">${r.status}</span></td>
-        <td style="font-weight:800; color:#2563EB;">${r.total_ttc.toLocaleString()} MAD</td>
-      </tr>
-    `).join('');
-    lucide.createIcons();
+    if (tbody) {
+      tbody.innerHTML = parsedImportRows.map((r, i) => `
+        <tr>
+          <td><strong>${i + 1}</strong></td>
+          <td style="font-weight:700; color:#1F2937;">${r.clinic}</td>
+          <td>${r.phone}</td>
+          <td>${r.city}</td>
+          <td><span class="badge badge-action-blue">${r.type_etablissement}</span></td>
+          <td>${r.pack}</td>
+          <td><span class="badge ${r.status === 'Gagné' ? 'badge-success-green' : 'badge-waiting-amber'}">${r.status}</span></td>
+          <td style="font-weight:800; color:#2563EB;">${r.total_ttc.toLocaleString()} MAD</td>
+        </tr>
+      `).join('');
+    }
+    safeCreateIcons();
   } else {
-    showToast('⚠️ Aucune ligne valide trouvée.', 'warning');
+    showToast('⚠️ Aucune ligne valide trouvée. Vérifiez le format collé.', 'warning');
   }
 };
 
@@ -5646,6 +5728,10 @@ window.executeGoogleSheetsImport = function() {
   showToast(`🎉 Félicitations ! ${count} lignes ont été importées avec succès dans Nobti CRM !`, 'success');
   renderActiveView();
 };
+
+// Aliases for global modal accessibility
+window.openNewLeadModal = window.openNewProspectModal || function() { if (typeof openNewProspectModal === 'function') openNewProspectModal(); };
+window.openGoogleSheetsImportModal = window.openGoogleSheetsImportModal;
 
 /* ==========================================================================
    TABLE 4 : DEPLACEMENTS & FRAIS DE ROUTE (CALCULATEUR AUTOMATIQUE A/R)
