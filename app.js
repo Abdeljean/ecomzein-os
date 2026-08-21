@@ -1047,39 +1047,93 @@ function renderSalesView() {
           </div>
         </div>
       ` : `
-        <div class="table-container">
-          <table class="data-table">
+        <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling:touch; background:white; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 2px 8px rgba(0,0,0,0.03); margin-top:0.5rem;">
+          <table class="data-table" style="width:100%; min-width:1380px; border-collapse:separate; border-spacing:0; font-size:0.82rem;">
             <thead>
-              <tr>
-                <th>Clinique / Médecin</th>
-                <th>Ville</th>
-                <th>Pack Solution</th>
-                <th>Statut</th>
-                <th>Valeur (MAD)</th>
-                <th style="text-align:right;">Actions</th>
+              <tr style="background:#F8FAFC; border-bottom:2px solid #E2E8F0;">
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="calendar" style="width:13px; height:13px; vertical-align:middle;"></i> Date</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="user" style="width:13px; height:13px; vertical-align:middle;"></i> Nom</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="phone" style="width:13px; height:13px; vertical-align:middle;"></i> Téléphone</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="map-pin" style="width:13px; height:13px; vertical-align:middle;"></i> Ville</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="building" style="width:13px; height:13px; vertical-align:middle;"></i> Type d'établissement</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="package" style="width:13px; height:13px; vertical-align:middle;"></i> Pack proposé</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="tag" style="width:13px; height:13px; vertical-align:middle;"></i> Statut</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="clock" style="width:13px; height:13px; vertical-align:middle;"></i> Date de rappel</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; min-width:200px; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="message-square" style="width:13px; height:13px; vertical-align:middle;"></i> Commentaire</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:left; border-bottom:2px solid #E2E8F0;"><i data-lucide="plus-circle" style="width:13px; height:13px; vertical-align:middle;"></i> Supplémentaires</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:right; border-bottom:2px solid #E2E8F0;"><i data-lucide="coins" style="width:13px; height:13px; vertical-align:middle;"></i> Total HT</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:right; border-bottom:2px solid #E2E8F0;"><i data-lucide="dollar-sign" style="width:13px; height:13px; vertical-align:middle;"></i> Total TTC</th>
+                <th style="padding:0.75rem 0.85rem; font-weight:800; color:#334155; white-space:nowrap; text-align:center; border-bottom:2px solid #E2E8F0;">Actions</th>
               </tr>
             </thead>
             <tbody>
-              ${state.prospects.slice(0, 100).map(p => `
-                <tr>
-                  <td style="cursor:pointer;" onclick="openProspectDrawer('${p.id}')">
-                    <div style="font-weight:700; color:#2563EB;">${p.clinic}</div>
-                    <div style="font-size:0.78rem; color:#64748B;">${p.name} • ${p.phone}</div>
-                  </td>
-                  <td>${p.city}</td>
-                  <td>${p.pack}</td>
-                  <td><span class="badge ${p.status === 'Gagné' ? 'badge-green' : 'badge-blue'}">${p.status}</span></td>
-                  <td style="font-weight:700;">${p.value.toLocaleString()} MAD</td>
-                  <td style="text-align:right;">
-                    <button class="btn btn-secondary btn-sm" onclick="openProspectDrawer('${p.id}')"><i data-lucide="eye"></i> Voir Détails</button>
-                  </td>
-                </tr>
-              `).join('')}
+              ${state.prospects.slice(0, 150).map(p => {
+                const htVal = p.total_ht || (p.total_ttc ? Math.round(p.total_ttc / 1.20) : (p.value ? Math.round(p.value / 1.20) : 0));
+                const ttcVal = p.total_ttc || p.value || (htVal ? Math.round(htVal * 1.20) : 0);
+                return `
+                  <tr style="border-bottom:1px solid #F1F5F9; transition:background 0.15s ease;">
+                    <td style="padding:0.7rem 0.85rem; font-family:monospace; font-size:0.78rem; color:#64748B; white-space:nowrap;">
+                      ${p.date || '—'}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; font-weight:700; color:#1E293B; cursor:pointer;" onclick="openProspectDrawer('${p.id}')">
+                      <div style="color:#2563EB; font-weight:700;">${p.name || p.clinic || 'Client'}</div>
+                      ${p.clinic && p.clinic !== p.name ? `<div style="font-size:0.72rem; color:#64748B;">${p.clinic}</div>` : ''}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap;">
+                      <a href="tel:${p.phone}" style="color:#1E293B; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem;">
+                        <i data-lucide="phone" style="width:12px; height:12px; color:#16A34A;"></i>
+                        <span>${p.phone || '—'}</span>
+                      </a>
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap; color:#334155; font-weight:500;">
+                      ${p.city || '—'}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap;">
+                      <span class="badge badge-secondary" style="font-size:0.72rem; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;">
+                        ${p.type_etablissement || p.type || 'Cabinet médical'}
+                      </span>
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap;">
+                      <strong style="color:#1E40AF; font-size:0.78rem;">${p.pack || 'Pack Cabinet Plus'}</strong>
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap;">
+                      <span class="badge ${p.status === 'Gagné' ? 'badge-success-green' : p.status === 'Négociation' ? 'badge-urgent-red' : p.status === 'Devis Envoyé' ? 'badge-waiting-amber' : p.status === 'Qualifié' ? 'badge-action-blue' : 'badge-secondary'}" style="font-size:0.72rem; font-weight:700;">
+                        ${p.status || 'À Contacter'}
+                      </span>
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap; font-size:0.75rem; color:${p.rappelDate ? '#D97706' : '#94A3B8'}; font-weight:${p.rappelDate ? '700' : '400'};">
+                      ${p.rappelDate ? `📅 ${p.rappelDate}` : '—'}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; max-width:240px; white-space:normal; line-height:1.35; font-size:0.76rem; color:#475569;" title="${p.notes || p.commentaire || ''}">
+                      ${p.notes || p.commentaire ? ((p.notes || p.commentaire).length > 60 ? (p.notes || p.commentaire).slice(0, 60) + '...' : (p.notes || p.commentaire)) : '<span style="color:#CBD5E1;">—</span>'}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; white-space:nowrap; font-size:0.75rem; color:#475569;">
+                      ${p.supplementaires ? `<span class="badge badge-amber" style="font-size:0.7rem;">${p.supplementaires}</span>` : '<span style="color:#CBD5E1;">Aucun</span>'}
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; text-align:right; white-space:nowrap; font-weight:600; color:#475569; font-size:0.8rem;">
+                      ${Number(htVal).toLocaleString()} DH
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; text-align:right; white-space:nowrap; font-weight:800; color:#2563EB; font-size:0.85rem;">
+                      ${Number(ttcVal).toLocaleString()} DH
+                    </td>
+                    <td style="padding:0.7rem 0.85rem; text-align:center; white-space:nowrap;">
+                      <div style="display:inline-flex; gap:0.25rem;">
+                        <button class="btn btn-secondary btn-sm" style="padding:0.25rem 0.45rem; font-size:0.72rem;" onclick="openProspectDrawer('${p.id}')" title="Voir la fiche complète">
+                          <i data-lucide="eye" style="width:13px; height:13px;"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" style="padding:0.25rem 0.45rem; font-size:0.72rem; color:#16A34A; border-color:#BBF7D0;" onclick="triggerWhatsApp('${p.phone}', '${p.id}')" title="Envoyer WhatsApp">
+                          <i data-lucide="message-circle" style="width:13px; height:13px;"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
           </table>
-          ${state.prospects.length > 100 ? `
+          ${state.prospects.length > 150 ? `
             <div style="text-align:center; padding:0.75rem; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:0.8rem; color:#64748B; font-weight:600;">
-              ⚡ Affichage des 100 premiers prospects sur ${state.prospects.length.toLocaleString()} au total (Optimisé pour la vitesse 60 FPS)
+              ⚡ Affichage des 150 premiers prospects sur ${state.prospects.length.toLocaleString()} au total
             </div>
           ` : ''}
         </div>
@@ -1216,15 +1270,19 @@ function openProspectDrawer(id) {
     
     <div class="drawer-body" style="padding:1rem 1.25rem; gap:0.85rem;">
 
-      <!-- Client Info Card -->
-      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:0.85rem;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.8rem;">
-          <div><span style="color:#64748B;">💰 Valeur:</span> <strong style="color:#2563EB;">${(Number(p.value) || 0).toLocaleString()} MAD</strong></div>
-          <div><span style="color:#64748B;">📦 Pack:</span> <strong>${p.pack}</strong></div>
-          <div><span style="color:#64748B;">📞 Tél:</span> <strong>${p.phone}</strong></div>
-          <div><span style="color:#64748B;">👤 Commercial:</span> <strong>${p.salesperson || 'Amine Kabbaj'}</strong></div>
+      <!-- Client 12 Fields Info Grid -->
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:0.9rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; font-size:0.8rem;">
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">📅 Date d'ajout:</span> <strong>${p.date || '—'}</strong></div>
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">📍 Ville:</span> <strong>${p.city || '—'}</strong></div>
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">🏢 Type d'établissement:</span> <strong>${p.type_etablissement || p.type || 'Cabinet médical'}</strong></div>
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">📦 Pack proposé:</span> <strong style="color:#1E40AF;">${p.pack || 'Pack Cabinet Plus'}</strong></div>
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">⏰ Date de rappel:</span> <strong style="color:${p.rappelDate ? '#D97706' : '#64748B'};">${p.rappelDate || 'Non programmée'}</strong></div>
+          <div><span style="color:#64748B; font-size:0.72rem; display:block;">🛠️ Supplémentaires:</span> <strong>${p.supplementaires || 'Aucun'}</strong></div>
+          <div style="background:#F1F5F9; padding:0.4rem 0.6rem; border-radius:6px;"><span style="color:#64748B; font-size:0.7rem; display:block;">Total HT:</span> <strong style="color:#334155;">${((p.total_ht || Math.round((p.total_ttc || p.value || 0) / 1.20)) || 0).toLocaleString()} DH</strong></div>
+          <div style="background:#EFF6FF; padding:0.4rem 0.6rem; border-radius:6px;"><span style="color:#2563EB; font-size:0.7rem; display:block; font-weight:700;">Total TTC:</span> <strong style="color:#2563EB; font-size:0.95rem;">${(p.total_ttc || p.value || 0).toLocaleString()} DH</strong></div>
         </div>
-        ${p.notes ? `<div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px dashed #E2E8F0; font-size:0.78rem; color:#64748B;">📝 ${p.notes}</div>` : ''}
+        ${p.notes || p.commentaire ? `<div style="margin-top:0.6rem; padding-top:0.6rem; border-top:1px dashed #CBD5E1; font-size:0.78rem; color:#475569; line-height:1.4;">💬 <strong>Commentaire :</strong> ${p.notes || p.commentaire}</div>` : ''}
       </div>
 
       <!-- 📊 Activity Timeline (Real Dynamic Logs) -->
@@ -2610,27 +2668,144 @@ function renderAdministrationView() {
 
 /* Global Utilities */
 function openNewProspectModal() {
+  const todayStr = new Date().toISOString().split('T')[0];
   const modal = document.getElementById('modal');
   const overlay = document.getElementById('modal-overlay');
+  modal.style.maxWidth = '780px';
+  modal.style.width = '95%';
+
   modal.innerHTML = `
-    <div class="modal-header">
-      <h3>Nouveau Prospect</h3>
+    <div class="modal-header" style="padding:1rem 1.25rem; border-bottom:1px solid #E2E8F0;">
+      <h3 style="font-size:1.15rem; font-weight:800; color:#1F2937; display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="user-plus" style="color:#2563EB;"></i> Nouveau Prospect / Fiche de Suivi CRM
+      </h3>
       <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
     </div>
     <form onsubmit="saveNewProspect(event)">
-      <div class="modal-body">
-        <label style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; display:block;">Nom Clinique *</label>
-        <input type="text" id="np-clinic" class="form-input" placeholder="ex: Clinique Dentaire Al Hikma" required style="margin-bottom:0.75rem;">
+      <div class="modal-body" style="padding:1.25rem; max-height:80vh; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
         
-        <label style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; display:block;">Téléphone *</label>
-        <input type="text" id="np-phone" class="form-input" placeholder="+212 6..." required style="margin-bottom:0.75rem;">
+        <!-- 1. Date -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">1. Date *</label>
+          <input type="date" id="np-date" class="form-input" value="${todayStr}" required>
+        </div>
 
-        <label style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; display:block;">Valeur Estimée (MAD)</label>
-        <input type="number" id="np-value" class="form-input" placeholder="25000" required style="margin-bottom:0.75rem;">
+        <!-- 2. Nom -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">2. Nom du Contact / Établissement *</label>
+          <input type="text" id="np-name" class="form-input" placeholder="ex: Dr. Amine Bennani / Cabinet Dentaire" required>
+        </div>
+
+        <!-- 3. Téléphone -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">3. Téléphone (Appel & WhatsApp) *</label>
+          <input type="text" id="np-phone" class="form-input" placeholder="ex: 0661122334 ou +2126..." required>
+        </div>
+
+        <!-- 4. Ville -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">4. Ville *</label>
+          <input type="text" id="np-city" list="cities-list" class="form-input" placeholder="ex: Casablanca" value="Casablanca" required>
+          <datalist id="cities-list">
+            <option value="Casablanca">
+            <option value="Rabat">
+            <option value="Marrakech">
+            <option value="Tanger">
+            <option value="Agadir">
+            <option value="Fès">
+            <option value="Oujda">
+            <option value="Kénitra">
+            <option value="Tétouan">
+            <option value="Salé">
+            <option value="Meknès">
+            <option value="Nador">
+            <option value="El Jadida">
+            <option value="Safi">
+            <option value="Mohammedia">
+          </datalist>
+        </div>
+
+        <!-- 5. Type d'établissement -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">5. Type d'établissement *</label>
+          <select id="np-type" class="form-input" required>
+            <option value="Cabinet médical">Cabinet médical</option>
+            <option value="Cabinet avec 1 médecin">Cabinet avec 1 médecin</option>
+            <option value="Cabinets médicaux jusqu'à 4 médecins">Cabinets médicaux jusqu'à 4 médecins</option>
+            <option value="Cabinet dentaire">Cabinet dentaire</option>
+            <option value="Laboratoire">Laboratoire</option>
+            <option value="Clinique / Polyclinique">Clinique / Polyclinique</option>
+            <option value="Centre de radiologie">Centre de radiologie</option>
+            <option value="Hôpital">Hôpital</option>
+            <option value="Pharmacie">Pharmacie</option>
+            <option value="Autre établissement">Autre établissement</option>
+          </select>
+        </div>
+
+        <!-- 6. Pack proposé -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">6. Pack proposé *</label>
+          <select id="np-pack" class="form-input" onchange="syncNewProspectTotals()" required>
+            <option value="Pack Cabinet Plus" data-ht="5000" data-ttc="6000">Pack Cabinet Plus (6 000 DH TTC)</option>
+            <option value="Pack Cabinet Pro" data-ht="6415.83" data-ttc="7699">Pack Cabinet Pro (7 699 DH TTC)</option>
+            <option value="Pack Laboratoire" data-ht="8165.83" data-ttc="9799">Pack Laboratoire (9 799 DH TTC)</option>
+            <option value="Pack Clinique PRO" data-ht="24082.50" data-ttc="28899">Pack Clinique PRO (À partir de 28 899 DH TTC)</option>
+          </select>
+        </div>
+
+        <!-- 7. Statut -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">7. Statut *</label>
+          <select id="np-status" class="form-input" required>
+            <option value="À Contacter">🟣 À Contacter</option>
+            <option value="Qualifié">🔵 Qualifié</option>
+            <option value="Devis Envoyé">🟠 Devis Envoyé</option>
+            <option value="Négociation">🔴 Négociation</option>
+            <option value="Gagné">🟢 Gagné / Confirmé</option>
+            <option value="Perdu">⚪ Perdu / Sans suite</option>
+          </select>
+        </div>
+
+        <!-- 8. Date de rappel -->
+        <div>
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">8. Date de rappel</label>
+          <input type="date" id="np-rappel" class="form-input">
+        </div>
+
+        <!-- 10. Supplémentaires -->
+        <div style="grid-column:span 2;">
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">10. Éléments Supplémentaires (Optionnel)</label>
+          <select id="np-supp" class="form-input" onchange="syncNewProspectTotals()">
+            <option value="" data-ht="0" data-ttc="0">-- Aucun supplément --</option>
+            ${supplementsData.map(s => `
+              <option value="${s.name}" data-ht="${s.priceHT}" data-ttc="${s.priceTTC}">
+                ${s.name} (+${s.priceHT} DH HT / +${s.priceTTC} DH TTC) ${s.available ? '' : '⚠️ Indisponible'}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <!-- 9. Commentaire (Texte long) -->
+        <div style="grid-column:span 2;">
+          <label style="font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">9. Commentaire (Notes & Besoins du client)</label>
+          <textarea id="np-notes" class="form-input" rows="2" placeholder="Détails de l'échange, nombre de médecins, configuration souhaitée..."></textarea>
+        </div>
+
+        <!-- 11. Total HT & 12. Total TTC -->
+        <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; padding:0.75rem;">
+          <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.2rem;">11. Total HT (DH)</label>
+          <input type="number" id="np-total-ht" class="form-input" value="5000" style="font-weight:700; color:#1E293B;" onkeyup="syncFromHT(this.value)">
+        </div>
+
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:0.75rem;">
+          <label style="font-size:0.75rem; font-weight:700; color:#1E40AF; display:block; margin-bottom:0.2rem;">12. Total TTC (DH)</label>
+          <input type="number" id="np-total-ttc" class="form-input" value="6000" style="font-weight:800; color:#2563EB;" onkeyup="syncFromTTC(this.value)">
+        </div>
+
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="padding:0.85rem 1.25rem; border-top:1px solid #E2E8F0;">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Enregistrer dans le Tableau CRM</button>
       </div>
     </form>
   `;
@@ -2639,28 +2814,79 @@ function openNewProspectModal() {
   safeCreateIcons();
 }
 
+window.syncNewProspectTotals = function() {
+  const packSelect = document.getElementById('np-pack');
+  const suppSelect = document.getElementById('np-supp');
+  const htInput = document.getElementById('np-total-ht');
+  const ttcInput = document.getElementById('np-total-ttc');
+
+  const selectedPackOpt = packSelect?.options[packSelect.selectedIndex];
+  const selectedSuppOpt = suppSelect?.options[suppSelect.selectedIndex];
+
+  const packHT = parseFloat(selectedPackOpt?.getAttribute('data-ht') || 0);
+  const packTTC = parseFloat(selectedPackOpt?.getAttribute('data-ttc') || 0);
+
+  const suppHT = parseFloat(selectedSuppOpt?.getAttribute('data-ht') || 0);
+  const suppTTC = parseFloat(selectedSuppOpt?.getAttribute('data-ttc') || 0);
+
+  const totalHT = Math.round(packHT + suppHT);
+  const totalTTC = Math.round(packTTC + suppTTC);
+
+  if (htInput) htInput.value = totalHT;
+  if (ttcInput) ttcInput.value = totalTTC;
+};
+
+window.syncFromHT = function(htVal) {
+  const ht = parseFloat(htVal) || 0;
+  const ttcInput = document.getElementById('np-total-ttc');
+  if (ttcInput) ttcInput.value = Math.round(ht * 1.20);
+};
+
+window.syncFromTTC = function(ttcVal) {
+  const ttc = parseFloat(ttcVal) || 0;
+  const htInput = document.getElementById('np-total-ht');
+  if (htInput) htInput.value = Math.round(ttc / 1.20);
+};
+
 function saveNewProspect(e) {
   e.preventDefault();
-  const clinic = document.getElementById('np-clinic').value;
+  const date = document.getElementById('np-date').value || new Date().toISOString().split('T')[0];
+  const name = document.getElementById('np-name').value;
   const phone = document.getElementById('np-phone').value;
-  const value = parseFloat(document.getElementById('np-value').value) || 0;
+  const city = document.getElementById('np-city').value || 'Casablanca';
+  const type_etablissement = document.getElementById('np-type').value;
+  const pack = document.getElementById('np-pack').value;
+  const status = document.getElementById('np-status').value;
+  const rappelDate = document.getElementById('np-rappel').value || '';
+  const notes = document.getElementById('np-notes').value || '';
+  const supplementaires = document.getElementById('np-supp').value || '';
+  const total_ht = parseFloat(document.getElementById('np-total-ht').value) || 0;
+  const total_ttc = parseFloat(document.getElementById('np-total-ttc').value) || 0;
 
   state.prospects.unshift({
     id: `PRO-${1000 + state.prospects.length + 1}`,
-    clinic,
-    name: 'Contact Mâitre',
+    date,
+    name,
+    clinic: name,
     phone,
-    city: 'Casablanca',
-    pack: 'Pack Dentaire & TV',
-    status: 'À Contacter',
-    value,
-    salesperson: 'Youssef El Amrani',
-    stepIndex: 0
+    city,
+    type_etablissement,
+    pack,
+    status,
+    rappelDate,
+    notes,
+    commentaire: notes,
+    supplementaires,
+    total_ht,
+    total_ttc,
+    value: total_ttc,
+    salesperson: state.currentUser ? state.currentUser.name : 'Direction',
+    stepIndex: status === 'Gagné' ? 4 : status === 'Devis Envoyé' ? 2 : status === 'Qualifié' ? 1 : 0
   });
 
   closeModal();
   saveStateToLocalStorage();
-  showToast(`Prospect ${clinic} ajouté !`, 'success');
+  showToast(`Prospect "${name}" enregistré avec succès !`, 'success');
   renderActiveView();
 }
 
@@ -6145,18 +6371,23 @@ window.openGoogleSheetsImportModal = function() {
       </div>
 
       <!-- Preview Table Container -->
-      <div id="sheets-preview-container" style="display:none; max-height:220px; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px;">
-        <table class="data-table" style="font-size:0.78rem;">
+      <div id="sheets-preview-container" style="display:none; max-height:260px; overflow-x:auto; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px;">
+        <table class="data-table" style="font-size:0.75rem; width:100%; min-width:1200px;">
           <thead>
-            <tr>
+            <tr style="background:#F8FAFC;">
               <th>#</th>
-              <th>Établissement / Client</th>
+              <th>Date</th>
+              <th>Nom</th>
               <th>Téléphone</th>
               <th>Ville</th>
-              <th>Type</th>
-              <th>Pack</th>
+              <th>Type d'établissement</th>
+              <th>Pack proposé</th>
               <th>Statut</th>
-              <th>Total TTC</th>
+              <th>Date rappel</th>
+              <th>Commentaire</th>
+              <th>Supplémentaires</th>
+              <th style="text-align:right;">Total HT</th>
+              <th style="text-align:right;">Total TTC</th>
             </tr>
           </thead>
           <tbody id="sheets-preview-tbody"></tbody>
@@ -6190,11 +6421,9 @@ window.handleSheetsFileUpload = function(e) {
 
 window.pasteDemoGoogleSheetsData = function() {
   const demoText = [
-    "Clinique Al Mansour\t0661122334\tCasablanca\tCabinet dentaire\tPack Dentaire & TV\tQualifié\t24500",
-    "Polyclinique du Nord\t0539988776\tTanger\tClinique / Hôpital\tSystème Enterprise\tGagné\t95000",
-    "Centre Radiologie Anoual\t0663882210\tRabat\tCentre de radiologie\tPack Borne & Ticket\tDevis Envoyé\t48000",
-    "Cabinet Ophtalmo Majorelle\t0667339900\tCasablanca\tCabinet médical\tPack Smart TV\tÀ Contacter\t16500",
-    "Hôpital Privé Ibn Rochd\t0522445566\tCasablanca\tHôpital\tPack Enterprise Multi-Étages\tGagné\t128000"
+    "2026-08-20\tDr. Alami Bennani\t0661122334\tCasablanca\tCabinet médical\tPack Cabinet Plus\tQualifié\t2026-08-26\tIntéressé par 1 médecin + TV d'attente\tApplication Nobti 1.0 (Attente)\t5000\t6000",
+    "2026-08-21\tPolyclinique du Nord\t0539988776\tTanger\tClinique / Polyclinique\tPack Clinique PRO\tNégociation\t2026-08-28\tBesoin de 2 bornes tactiles et Smart TV 55\tBorne Tactile All in one GS-H3 21,5\t24082.5\t28899",
+    "2026-08-21\tLaboratoire BioSanté\t0663882210\tRabat\tLaboratoire\tPack Laboratoire\tDevis Envoyé\t2026-08-25\tGestion multi-guichets et appel vocal\tMini PC Pro i3 8g 128g\t8165.83\t9799"
   ].join("\n");
 
   const textarea = document.getElementById('sheets-paste-area');
@@ -6225,12 +6454,12 @@ window.previewPastedGoogleSheets = function() {
     }
     const cleanDigits = s.replace(/\D/g, '');
     const num = parseFloat(s.replace(/[^0-9.]/g, ''));
-    return !isNaN(num) && num >= 500 && num <= 1000000 && cleanDigits.length <= 6;
+    return !isNaN(num) && num >= 100 && num <= 1000000 && cleanDigits.length <= 7;
   };
 
   const knownCities = ['casablanca', 'rabat', 'marrakech', 'tanger', 'agadir', 'fès', 'fes', 'oujda', 'kénitra', 'kenitra', 'tétouan', 'tetouan', 'salé', 'sale', 'meknès', 'meknes', 'nador', 'el jadida', 'safi', 'temara', 'mohammedia', 'berrechid', 'khouribga', 'beni mellal', 'dakhla', 'laâyoune'];
-  const knownPacks = ['dentaire', 'borne', 'ticket', 'smart tv', 'enterprise', 'queue', 'pack'];
-  const knownStatuses = ['gagné', 'gagne', 'devis', 'contact', 'qualifié', 'qualifie', 'négociation', 'negociation', 'perdu', 'nouveau', 'client', 'en cours'];
+  const knownPacks = ['cabinet plus', 'cabinet pro', 'laboratoire', 'clinique pro', 'dentaire', 'borne', 'ticket', 'smart tv', 'enterprise', 'queue', 'pack'];
+  const knownStatuses = ['gagné', 'gagne', 'devis', 'contact', 'qualifié', 'qualifie', 'négociation', 'negociation', 'perdu', 'nouveau', 'client', 'en cours', 'à contacter'];
 
   rawLines.forEach((line, idx) => {
     let cols = [];
@@ -6242,91 +6471,110 @@ window.previewPastedGoogleSheets = function() {
     cols = cols.map(c => c.trim().replace(/^["']|["']$/g, '')).filter(c => c.length > 0);
 
     const combinedLine = cols.join(' ').toLowerCase();
-    if (idx === 0 && (combinedLine.includes('nom') || combinedLine.includes('client') || combinedLine.includes('prospect') || combinedLine.includes('téléphone') || combinedLine.includes('telephone') || combinedLine.includes('ville') || combinedLine.includes('etablissement') || (combinedLine.includes('date') && cols.length > 1))) {
+    if (idx === 0 && (combinedLine.includes('nom') || combinedLine.includes('client') || combinedLine.includes('téléphone') || combinedLine.includes('telephone') || combinedLine.includes('commentaire') || combinedLine.includes('rappel') || combinedLine.includes('total ht') || (combinedLine.includes('date') && cols.length > 1))) {
       return;
     }
 
-    let clinic = '';
-    let doctor = '';
-    let phone = '';
-    let city = 'Casablanca';
-    let type = 'Établissement Professionnel';
-    let pack = 'Pack Solution Ecom Zein';
-    let status = 'À Contacter';
-    let value = 0;
-    let importDate = new Date().toISOString().split('T')[0];
+    // Direct Positional 12-Column Matching if format aligns
+    let rowDate = new Date().toISOString().split('T')[0];
+    let rowName = '';
+    let rowPhone = '';
+    let rowCity = 'Casablanca';
+    let rowType = 'Cabinet médical';
+    let rowPack = 'Pack Cabinet Plus';
+    let rowStatus = 'À Contacter';
+    let rowRappelDate = '';
+    let rowCommentaire = '';
+    let rowSupp = '';
+    let rowTotalHT = 0;
+    let rowTotalTTC = 0;
 
-    // Pass 1: Categorize typed fields
-    const unclassified = [];
-    cols.forEach(col => {
-      const lower = col.toLowerCase();
+    if (cols.length >= 8 && isDateStr(cols[0])) {
+      rowDate = cols[0] || rowDate;
+      rowName = cols[1] || '';
+      rowPhone = cols[2] || '';
+      rowCity = cols[3] || 'Casablanca';
+      rowType = cols[4] || 'Cabinet médical';
+      rowPack = cols[5] || 'Pack Cabinet Plus';
+      rowStatus = cols[6] || 'À Contacter';
+      rowRappelDate = isDateStr(cols[7]) ? cols[7] : '';
+      rowCommentaire = cols[8] || (cols[7] && !isDateStr(cols[7]) ? cols[7] : '');
+      rowSupp = cols[9] || '';
+      rowTotalHT = parseFloat((cols[10] || '').replace(/[^0-9.]/g, '')) || 0;
+      rowTotalTTC = parseFloat((cols[11] || '').replace(/[^0-9.]/g, '')) || 0;
+    } else {
+      // Heuristic Parsing
+      const unclassified = [];
+      cols.forEach(col => {
+        const lower = col.toLowerCase();
 
-      if (isDateStr(col)) {
-        importDate = col;
-      } else if (!phone && isPhoneStr(col)) {
-        phone = col;
-      } else if (!value && isAmountStr(col)) {
-        const num = parseFloat(col.replace(/[^0-9.]/g, ''));
-        if (num > 0 && num < 5000000) value = num;
-      } else if (knownCities.some(c => lower === c || lower.includes(c))) {
-        city = col.charAt(0).toUpperCase() + col.slice(1);
-      } else if (knownPacks.some(p => lower.includes(p))) {
-        pack = col;
-      } else if (knownStatuses.some(s => lower.includes(s))) {
-        if (lower.includes('gagn') || lower.includes('client')) status = 'Gagné';
-        else if (lower.includes('devis')) status = 'Devis Envoyé';
-        else if (lower.includes('qualif')) status = 'Qualifié';
-        else if (lower.includes('nego') || lower.includes('négoc')) status = 'Négociation';
-        else status = col;
-      } else if (lower.startsWith('dr') || lower.includes('docteur')) {
-        doctor = col;
-      } else {
-        unclassified.push(col);
-      }
-    });
+        if (!rowDate && isDateStr(col)) {
+          rowDate = col;
+        } else if (rowDate && !rowRappelDate && isDateStr(col)) {
+          rowRappelDate = col;
+        } else if (!rowPhone && isPhoneStr(col)) {
+          rowPhone = col;
+        } else if (!rowTotalTTC && isAmountStr(col)) {
+          const num = parseFloat(col.replace(/[^0-9.]/g, ''));
+          if (num > 0) rowTotalTTC = num;
+        } else if (knownCities.some(c => lower === c || lower.includes(c))) {
+          rowCity = col.charAt(0).toUpperCase() + col.slice(1);
+        } else if (knownPacks.some(p => lower.includes(p))) {
+          rowPack = col;
+        } else if (knownStatuses.some(s => lower.includes(s))) {
+          if (lower.includes('gagn') || lower.includes('client')) rowStatus = 'Gagné';
+          else if (lower.includes('devis')) rowStatus = 'Devis Envoyé';
+          else if (lower.includes('qualif')) rowStatus = 'Qualifié';
+          else if (lower.includes('nego') || lower.includes('négoc')) rowStatus = 'Négociation';
+          else rowStatus = col;
+        } else {
+          unclassified.push(col);
+        }
+      });
 
-    // Pass 2: Assign unclassified text columns to clinic / establishment name & category
-    if (unclassified.length > 0) {
-      clinic = unclassified[0];
-      if (unclassified.length > 1) {
-        type = unclassified[1];
-      }
+      if (unclassified.length > 0) rowName = unclassified[0];
+      if (unclassified.length > 1) rowType = unclassified[1];
+      if (unclassified.length > 2) rowCommentaire = unclassified.slice(2).join(' — ');
     }
 
-    if (!clinic && cols[0] && !isDateStr(cols[0]) && !isPhoneStr(cols[0])) {
-      clinic = cols[0];
-    }
-    if (!clinic) clinic = 'Établissement Client #' + (idx + 1);
+    if (!rowName && cols[0] && !isDateStr(cols[0])) rowName = cols[0];
+    if (!rowName) rowName = 'Client / Prospect #' + (idx + 1);
 
-    if (!phone) {
+    if (!rowPhone) {
       for (const c of cols) {
-        if (isPhoneStr(c)) { phone = c; break; }
+        if (isPhoneStr(c)) { rowPhone = c; break; }
       }
-      if (!phone) phone = '+212600000000';
+      if (!rowPhone) rowPhone = '0600000000';
     }
 
-    if (!value || value > 2000000) {
-      value = 24500; // Realistic standard pack price
+    if (!rowTotalTTC || rowTotalTTC > 1000000) {
+      if (rowPack.includes('Clinique')) rowTotalTTC = 28899;
+      else if (rowPack.includes('Laboratoire')) rowTotalTTC = 9799;
+      else if (rowPack.includes('Cabinet Pro')) rowTotalTTC = 7699;
+      else rowTotalTTC = 6000;
     }
 
-    if (!doctor) {
-      doctor = clinic.startsWith('Dr') ? clinic : `Dr. ${clinic}`;
+    if (!rowTotalHT) {
+      rowTotalHT = Math.round(rowTotalTTC / 1.20);
     }
 
     parsedImportRows.push({
       id: `IMP-${Date.now()}-${idx}`,
-      clinic: clinic,
-      name: doctor,
-      phone: phone,
-      city: city,
-      type_etablissement: type,
-      pack: pack,
-      status: status,
-      value: value,
-      total_ht: Math.round(value / 1.20),
-      total_ttc: value,
-      date: importDate,
-      notes: `Importé depuis Google Sheets ("Nobti CRM") [Date fichier: ${importDate}]`
+      date: rowDate,
+      name: rowName,
+      clinic: rowName,
+      phone: rowPhone,
+      city: rowCity,
+      type_etablissement: rowType,
+      pack: rowPack,
+      status: rowStatus,
+      rappelDate: rowRappelDate,
+      notes: rowCommentaire || `Fiche importée Google Sheets [${rowDate}]`,
+      commentaire: rowCommentaire,
+      supplementaires: rowSupp,
+      total_ht: rowTotalHT,
+      total_ttc: rowTotalTTC,
+      value: rowTotalTTC
     });
   });
 
@@ -6344,13 +6592,18 @@ window.previewPastedGoogleSheets = function() {
       tbody.innerHTML = parsedImportRows.map((r, i) => `
         <tr>
           <td><strong>${i + 1}</strong></td>
-          <td style="font-weight:700; color:#1F2937;">${r.clinic}</td>
-          <td>${r.phone}</td>
-          <td>${r.city}</td>
-          <td><span class="badge badge-action-blue">${r.type_etablissement}</span></td>
-          <td>${r.pack}</td>
-          <td><span class="badge ${r.status === 'Gagné' ? 'badge-success-green' : 'badge-waiting-amber'}">${r.status}</span></td>
-          <td style="font-weight:800; color:#2563EB;">${r.total_ttc.toLocaleString()} MAD</td>
+          <td style="font-family:monospace; color:#64748B; white-space:nowrap;">${r.date}</td>
+          <td style="font-weight:700; color:#1F2937; white-space:nowrap;">${r.name}</td>
+          <td style="white-space:nowrap;">${r.phone}</td>
+          <td style="white-space:nowrap;">${r.city}</td>
+          <td style="white-space:nowrap;"><span class="badge badge-secondary" style="font-size:0.7rem;">${r.type_etablissement}</span></td>
+          <td style="white-space:nowrap;"><strong style="color:#1E40AF;">${r.pack}</strong></td>
+          <td style="white-space:nowrap;"><span class="badge ${r.status === 'Gagné' ? 'badge-success-green' : 'badge-waiting-amber'}">${r.status}</span></td>
+          <td style="white-space:nowrap; font-size:0.72rem; color:#D97706;">${r.rappelDate || '—'}</td>
+          <td style="max-width:160px; white-space:normal; font-size:0.72rem; color:#64748B;">${r.notes || '—'}</td>
+          <td style="white-space:nowrap; font-size:0.72rem;">${r.supplementaires || '—'}</td>
+          <td style="text-align:right; font-weight:600; white-space:nowrap;">${r.total_ht.toLocaleString()} DH</td>
+          <td style="text-align:right; font-weight:800; color:#2563EB; white-space:nowrap;">${r.total_ttc.toLocaleString()} DH</td>
         </tr>
       `).join('');
     }
@@ -6367,28 +6620,35 @@ window.executeGoogleSheetsImport = function() {
   parsedImportRows.forEach(r => {
     state.prospects.unshift({
       id: `PR-${Math.floor(1000 + Math.random() * 9000)}`,
-      clinic: r.clinic,
+      date: r.date || new Date().toISOString().split('T')[0],
       name: r.name,
+      clinic: r.name,
       phone: r.phone,
       city: r.city,
       type_etablissement: r.type_etablissement,
       pack: r.pack,
       status: r.status,
-      value: r.total_ttc,
+      rappelDate: r.rappelDate || '',
+      notes: r.notes || r.commentaire || '',
+      commentaire: r.notes || r.commentaire || '',
+      supplementaires: r.supplementaires || '',
+      total_ht: r.total_ht || Math.round(r.total_ttc / 1.20),
+      total_ttc: r.total_ttc || r.value || 0,
+      value: r.total_ttc || r.value || 0,
       stepIndex: r.status.includes('Gagné') ? 4 : 1,
-      notes: r.notes
+      salesperson: state.currentUser ? state.currentUser.name : 'Direction'
     });
 
     if (r.status.includes('Gagné') || r.status.includes('Client')) {
       state.clients.unshift({
         id: `CLI-${Math.floor(100 + Math.random() * 900)}`,
-        establishment: r.clinic,
+        establishment: r.name,
         contactName: r.name,
         phone: r.phone,
-        email: 'contact@' + r.clinic.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ma',
+        email: 'contact@' + r.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ma',
         city: r.city,
-        address: `${r.clinic}, ${r.city}`,
-        mapsUrl: `https://maps.google.com/?q=${encodeURIComponent(r.clinic + ' ' + r.city)}`,
+        address: `${r.name}, ${r.city}`,
+        mapsUrl: `https://maps.google.com/?q=${encodeURIComponent(r.name + ' ' + r.city)}`,
         packInstalled: r.pack,
         totalPurchases: r.total_ttc,
         status: 'Actif',
@@ -6401,7 +6661,7 @@ window.executeGoogleSheetsImport = function() {
             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             user: state.currentUser ? state.currentUser.name : 'Direction Ecom Zein',
             action: 'Import Google Sheets',
-            details: `Dossier importé depuis Google Sheets ("Nobti CRM"). Total: ${r.total_ttc.toLocaleString()} MAD.`,
+            details: `Dossier importé depuis Google Sheets ("Nobti CRM"). Total: ${r.total_ttc.toLocaleString()} DH.`,
             badgeColor: 'badge-success-green'
           }
         ]
