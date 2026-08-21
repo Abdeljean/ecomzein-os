@@ -38,6 +38,25 @@ export async function validateInstallation(req, res, next) {
   }
 }
 
+export async function getCommissions(req, res, next) {
+  try {
+    const commissions = await operationsService.fetchCommissions();
+    return res.json({ commissions });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function payoutCommission(req, res, next) {
+  try {
+    const { commissionId } = req.body;
+    const result = await operationsService.payoutCommissionService(commissionId, req.user.name, req.user.role);
+    return res.json({ status: 'success', result });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}
+
 export async function getAuditLogs(req, res, next) {
   try {
     const auditLogs = await operationsService.fetchAuditLogs();

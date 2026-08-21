@@ -26,13 +26,21 @@ router.get('/health', async (req, res) => {
 });
 
 // Secure File Upload Endpoint (PV, Factures, Devis, Logos)
-router.post('/upload/:category', authenticateToken, uploadMiddleware.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Aucun fichier téléchargé.' });
+const ALLOWED_UPLOAD_CATEGORIES = ['pv', 'factures', 'devis', 'logos'];
+router.post('/upload/:category', authenticateToken, (req, res, next) => {
+  const cat = String(req.params.category || '').toLowerCase();
+  if (!ALLOWED_UPLOAD_CATEGORIES.includes(cat)) {
+    return res.status(400).json({ error: 'Catégorie de fichier non autorisée. Catégories valides: pv, factures, devis, logos.' });
   }
+  next();
+}, uploadMiddleware.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier valide téléchargé.' });
+  }
+  const cleanCat = String(req.params.category).toLowerCase();
   res.json({
     status: 'success',
-    fileUrl: `/storage/uploads/${req.params.category}/${req.file.filename}`,
+    fileUrl: `/storage/uploads/${cleanCat}/${req.file.filename}`,
     filename: req.file.filename
   });
 });

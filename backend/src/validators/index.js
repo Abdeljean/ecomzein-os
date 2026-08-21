@@ -55,3 +55,7 @@ export const quoteSchema = z.object({
   totalTtc: z.number().nonnegative({ message: 'Montant TTC valide requis' })
 });
 
+export const payoutCommissionSchema = z.object({
+  commissionId: z.string().min(1, { message: 'ID commission requis' })
+});
+
