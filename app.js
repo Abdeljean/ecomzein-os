@@ -1051,6 +1051,8 @@ function renderSalesView() {
         <button class="btn ${state.salesSubTab === 'quotes' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.salesSubTab='quotes'; renderActiveView();">Devis Envoyés (${state.quotes.length})</button>
         <button class="btn ${state.salesSubTab === 'confirmations' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.salesSubTab='confirmations'; renderActiveView();">🔴 Confirmations (${pendingConfirmations})</button>
         <button class="btn ${state.salesSubTab === 'commissions' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="state.salesSubTab='commissions'; renderActiveView();">💰 Commissions</button>
+        <button class="btn btn-secondary btn-sm" style="border:1px solid #16A34A; color:#16A34A; font-weight:700;" onclick="openGoogleSheetsImportModal();"><i data-lucide="file-spreadsheet" style="width:14px;"></i> 📋 Importer Google Sheets</button>
+        <button class="btn btn-secondary btn-sm" style="border:1px solid #7C3AED; color:#7C3AED; font-weight:700;" onclick="openDeplacementsModal();"><i data-lucide="navigation" style="width:14px;"></i> 🚗 Frais Déplacements</button>
       </div>
     </div>
 
@@ -3945,7 +3947,10 @@ function renderClientsView() {
         <h1 class="page-title"><i data-lucide="users"></i> Clients</h1>
         <p class="page-subtitle">Gestion complète des établissements clients, coordonnées, localisation GPS et historique.</p>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openNewClientModal()"><i data-lucide="user-plus"></i> + Nouveau Client</button>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" style="border:1px solid #16A34A; color:#16A34A; font-weight:700;" onclick="openGoogleSheetsImportModal();"><i data-lucide="file-spreadsheet"></i> 📋 Importer Google Sheets</button>
+        <button class="btn btn-primary btn-sm" onclick="openNewClientModal()"><i data-lucide="user-plus"></i> + Nouveau Client</button>
+      </div>
     </div>
 
     <div class="table-container">
@@ -5465,6 +5470,318 @@ window.saveRecordedPayment = function(e) {
   closeModal();
   saveStateToLocalStorage();
   showToast(`🎉 Encaissement de ${amount.toLocaleString()} MAD validé (${ref}) !`, 'success');
+  renderActiveView();
+};
+
+/* ==========================================================================
+   GOOGLE SHEETS FAST IMPORT TOOL (COPIER-COLLER DIRECT DEPUIS GOOGLE SHEETS)
+   ========================================================================== */
+let parsedImportRows = [];
+
+window.openGoogleSheetsImportModal = function() {
+  parsedImportRows = [];
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem; background:#F8FAFC;">
+      <h3 style="font-size:1.1rem; color:#1F2937;"><i data-lucide="file-spreadsheet" style="color:#16A34A;"></i> Importation Rapide Google Sheets ➔ Nobti CRM</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem; gap:1rem;">
+      <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:0.85rem; font-size:0.82rem; color:#1E40AF; line-height:1.45;">
+        <strong>💡 Comment copier vos données depuis votre fichier Google Sheets ("Nobti CRM / SUIVI") :</strong><br>
+        1. Ouvrez votre tableau Google Sheets.<br>
+        2. Sélectionnez vos lignes (avec les colonnes : <em>Nom, Téléphone, Ville, Type, Pack, Statut, Total</em>).<br>
+        3. Faites <strong>Ctrl + C</strong> (Copier), puis collez dans la boîte ci-dessous (<strong>Ctrl + V</strong>) et cliquez sur <em>Prévisualiser</em>.
+      </div>
+
+      <div>
+        <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:0.35rem; display:block;">
+          Coller les lignes copiées depuis Google Sheets :
+        </label>
+        <textarea id="sheets-paste-area" class="form-input" rows="6" placeholder="Clinique Al Mansour	0661122334	Casablanca	Cabinet médical	Pack Dentaire & TV	Intéressé	24500&#10;Polyclinique du Nord	0539988776	Tanger	Hôpital	Système Enterprise	Gagné	95000&#10;Cabinet Dr Berrada	0662334455	Marrakech	Cabinet médical	Pack Smart TV	Gagné	40000" style="font-family:monospace; font-size:0.8rem; line-height:1.3;"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="previewPastedGoogleSheets()">
+          <i data-lucide="eye"></i> 1. Prévisualiser les Lignes
+        </button>
+        <span id="sheets-preview-count" style="font-size:0.82rem; font-weight:700; color:#2563EB;"></span>
+      </div>
+
+      <!-- Preview Table Container -->
+      <div id="sheets-preview-container" style="display:none; max-height:220px; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px;">
+        <table class="data-table" style="font-size:0.75rem;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Établissement / Docteur</th>
+              <th>Téléphone</th>
+              <th>Ville</th>
+              <th>Type</th>
+              <th>Pack</th>
+              <th>Statut</th>
+              <th>Total TTC</th>
+            </tr>
+          </thead>
+          <tbody id="sheets-preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0.85rem 1.25rem;">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+      <button type="button" id="btn-do-import" class="btn btn-success" disabled onclick="executeGoogleSheetsImport()">
+        <i data-lucide="upload"></i> 2. Importer Définitivement dans Nobti CRM
+      </button>
+    </div>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  lucide.createIcons();
+};
+
+window.previewPastedGoogleSheets = function() {
+  const text = (document.getElementById('sheets-paste-area')?.value || '').trim();
+  if (!text) {
+    showToast('⚠️ Veuillez d\'abord coller du texte depuis votre fichier Google Sheets.', 'warning');
+    return;
+  }
+
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length === 0) return;
+
+  parsedImportRows = [];
+
+  lines.forEach((line, idx) => {
+    let cols = [];
+    if (line.includes('\t')) {
+      cols = line.split('\t');
+    } else if (line.includes(';')) {
+      cols = line.split(';');
+    } else {
+      cols = line.split(',');
+    }
+
+    cols = cols.map(c => c.trim().replace(/^["']|["']$/g, ''));
+
+    // Skip header line if first column contains header keywords
+    if (idx === 0 && (cols[0].toLowerCase().includes('nom') || cols[0].toLowerCase().includes('client') || cols[0].toLowerCase().includes('date') || cols[0].toLowerCase().includes('suivi') || cols[0].toLowerCase().includes('etablissement'))) {
+      return;
+    }
+
+    let clinic = cols[0] || `Client Google Sheets #${idx + 1}`;
+    let phone = cols[1] || '0661000000';
+    let city = cols[2] || 'Casablanca';
+    let type = cols[3] || 'Cabinet médical';
+    let pack = cols[4] || 'Pack Dentaire & TV';
+    let status = cols[5] || 'À Contacter';
+    let value = parseFloat((cols[6] || '0').replace(/[^0-9.]/g, '')) || 24500;
+
+    // Adjust if phone is first column
+    if (/^[0-9+ ]{8,}$/.test(cols[0]) && cols[1]) {
+      phone = cols[0];
+      clinic = cols[1];
+    }
+
+    parsedImportRows.push({
+      id: `IMP-${Date.now()}-${idx}`,
+      clinic,
+      name: `Dr. ${clinic}`,
+      phone,
+      city,
+      type_etablissement: type,
+      pack,
+      status,
+      value,
+      total_ht: Math.round(value / 1.20),
+      total_ttc: value,
+      notes: `Importé depuis Google Sheets ("Nobti CRM") le ${new Date().toLocaleDateString('fr-FR')}`
+    });
+  });
+
+  const previewContainer = document.getElementById('sheets-preview-container');
+  const tbody = document.getElementById('sheets-preview-tbody');
+  const countEl = document.getElementById('sheets-preview-count');
+  const btnImport = document.getElementById('btn-do-import');
+
+  if (parsedImportRows.length > 0) {
+    previewContainer.style.display = 'block';
+    countEl.textContent = `✔ ${parsedImportRows.length} lignes détectées avec succès`;
+    btnImport.disabled = false;
+
+    tbody.innerHTML = parsedImportRows.map((r, i) => `
+      <tr>
+        <td><strong>${i + 1}</strong></td>
+        <td style="font-weight:700; color:#1F2937;">${r.clinic}</td>
+        <td>${r.phone}</td>
+        <td>${r.city}</td>
+        <td><span class="badge badge-action-blue">${r.type_etablissement}</span></td>
+        <td>${r.pack}</td>
+        <td><span class="badge ${r.status.includes('Gagné') ? 'badge-success-green' : 'badge-waiting-amber'}">${r.status}</span></td>
+        <td style="font-weight:800; color:#2563EB;">${r.total_ttc.toLocaleString()} MAD</td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  } else {
+    showToast('⚠️ Aucune ligne valide trouvée.', 'warning');
+  }
+};
+
+window.executeGoogleSheetsImport = function() {
+  if (parsedImportRows.length === 0) return;
+
+  const count = parsedImportRows.length;
+  parsedImportRows.forEach(r => {
+    state.prospects.unshift({
+      id: `PR-${Math.floor(1000 + Math.random() * 9000)}`,
+      clinic: r.clinic,
+      name: r.name,
+      phone: r.phone,
+      city: r.city,
+      type_etablissement: r.type_etablissement,
+      pack: r.pack,
+      status: r.status,
+      value: r.total_ttc,
+      stepIndex: r.status.includes('Gagné') ? 4 : 1,
+      notes: r.notes
+    });
+
+    if (r.status.includes('Gagné') || r.status.includes('Client')) {
+      state.clients.unshift({
+        id: `CLI-${Math.floor(100 + Math.random() * 900)}`,
+        establishment: r.clinic,
+        contactName: r.name,
+        phone: r.phone,
+        email: 'contact@' + r.clinic.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ma',
+        city: r.city,
+        address: `${r.clinic}, ${r.city}`,
+        mapsUrl: `https://maps.google.com/?q=${encodeURIComponent(r.clinic + ' ' + r.city)}`,
+        packInstalled: r.pack,
+        totalPurchases: r.total_ttc,
+        status: 'Actif',
+        warrantyExpiry: new Date(Date.now() + 365*24*3600000).toISOString().split('T')[0],
+        notes: r.notes,
+        activityHistory: [
+          {
+            id: `ACT-${Date.now()}`,
+            date: new Date().toLocaleDateString('fr-FR'),
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            user: state.currentUser ? state.currentUser.name : 'Direction Ecom Zein',
+            action: 'Import Google Sheets',
+            details: `Dossier importé depuis Google Sheets ("Nobti CRM"). Total: ${r.total_ttc.toLocaleString()} MAD.`,
+            badgeColor: 'badge-success-green'
+          }
+        ]
+      });
+    }
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`🎉 Félicitations ! ${count} lignes ont été importées avec succès dans Nobti CRM !`, 'success');
+  renderActiveView();
+};
+
+/* ==========================================================================
+   TABLE 4 : DEPLACEMENTS & FRAIS DE ROUTE (CALCULATEUR AUTOMATIQUE A/R)
+   ========================================================================== */
+window.openDeplacementsModal = function() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-header" style="padding:1rem 1.25rem; background:#F8FAFC;">
+      <h3 style="font-size:1.1rem; color:#1F2937;"><i data-lucide="navigation" style="color:#7C3AED;"></i> Calculateur Frais de Déplacements (Table 4)</h3>
+      <button class="icon-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form onsubmit="saveDeplacementEntry(event)">
+      <div class="modal-body" style="padding:1.25rem; gap:1rem;">
+        <div style="background:#FAF5FF; border:1px solid #E9D5FF; border-radius:10px; padding:0.85rem; font-size:0.82rem; color:#6B21A8;">
+          <strong>🚗 Règle de Calcul Automatique :</strong><br>
+          Distance Aller x 2 = Distance Totale A/R<br>
+          Frais Totaux = Distance Totale A/R x Tarif par km
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Mission / Client</label>
+            <input type="text" id="dep-mission" class="form-input" placeholder="Ex: Installation Clinique Al Mansour" required>
+          </div>
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Technicien / Commercial</label>
+            <input type="text" id="dep-user" class="form-input" value="${state.currentUser ? state.currentUser.name : 'Mehdi Tazi'}" required>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Distance Aller (KM) *</label>
+            <input type="number" id="dep-km-aller" class="form-input" value="120" min="1" step="1" oninput="calculateDeplacementLive()" required>
+          </div>
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">Tarif au KM (MAD) *</label>
+            <input type="number" id="dep-tarif-km" class="form-input" value="2.50" min="0.5" step="0.1" oninput="calculateDeplacementLive()" required>
+          </div>
+        </div>
+
+        <!-- Calculated Live Summary Box -->
+        <div style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:10px; padding:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div>
+            <span style="font-size:0.75rem; font-weight:700; color:#64748B;">DISTANCE TOTALE A/R :</span>
+            <div id="dep-total-km" style="font-size:1.3rem; font-weight:800; color:#1E40AF;">240 KM</div>
+          </div>
+          <div>
+            <span style="font-size:0.75rem; font-weight:700; color:#64748B;">FRAIS TOTAUX CALCULÉS :</span>
+            <div id="dep-total-dh" style="font-size:1.3rem; font-weight:800; color:#16A34A;">600.00 MAD</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:0.85rem 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Fermer</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Enregistrer Frais de Déplacement</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  lucide.createIcons();
+};
+
+window.calculateDeplacementLive = function() {
+  const aller = parseFloat(document.getElementById('dep-km-aller')?.value) || 0;
+  const tarif = parseFloat(document.getElementById('dep-tarif-km')?.value) || 0;
+  const totalKm = aller * 2;
+  const totalDh = totalKm * tarif;
+
+  const kmEl = document.getElementById('dep-total-km');
+  const dhEl = document.getElementById('dep-total-dh');
+  if (kmEl) kmEl.textContent = `${totalKm} KM`;
+  if (dhEl) dhEl.textContent = `${totalDh.toFixed(2)} MAD`;
+};
+
+window.saveDeplacementEntry = function(e) {
+  e.preventDefault();
+  const mission = document.getElementById('dep-mission').value;
+  const user = document.getElementById('dep-user').value;
+  const aller = parseFloat(document.getElementById('dep-km-aller').value) || 0;
+  const tarif = parseFloat(document.getElementById('dep-tarif-km').value) || 0;
+  const totalKm = aller * 2;
+  const totalDh = totalKm * tarif;
+
+  state.auditLogs.unshift({
+    id: `DEP-${Date.now().toString().slice(-4)}`,
+    timestamp: new Date().toLocaleString('fr-FR'),
+    user: user,
+    role: 'Terrain',
+    action: 'FRAIS_DEPLACEMENT_CALC',
+    entity: 'Déplacement',
+    entityId: mission,
+    oldValue: '-',
+    newValue: `${totalKm} KM A/R à ${tarif} MAD/KM = ${totalDh.toFixed(2)} MAD`
+  });
+
+  closeModal();
+  saveStateToLocalStorage();
+  showToast(`🚗 Frais de déplacement enregistrés : ${totalDh.toFixed(2)} MAD (${totalKm} KM A/R).`, 'success');
   renderActiveView();
 };
 
